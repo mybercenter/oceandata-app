@@ -60,7 +60,7 @@ const formData = ref({
 const selectedRoleObj = computed(() => roles.value.find(r => r.id === formData.value.roleId))
 const roleName = computed(() => selectedRoleObj.value?.name)
 
-const showStore = computed(() => roleName.value !== 'Administrator')
+const showStore = computed(() => roleName.value === 'Promotor')
 const isStoreRequired = computed(() => roleName.value === 'Promotor')
 
 const showDedicate = computed(() => roleName.value === 'Promotor')
