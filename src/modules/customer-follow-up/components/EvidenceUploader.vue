@@ -1,8 +1,8 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref } from 'vue'
 import { DocumentArrowUpIcon, XMarkIcon, PhotoIcon } from '@heroicons/vue/24/outline'
 
-const file = ref<File | null>(null)
+const file = defineModel<File | null>()
 const previewUrl = ref<string | null>(null)
 
 const handleFileSelect = (e: Event) => {

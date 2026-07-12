@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppInput from '@/shared/components/AppInput.vue'
@@ -219,6 +219,7 @@ const handleSubmit = (createAnother = false) => {
             :options="statusOptions"
           />
           <AppSelect
+            v-if="initialData"
             label="Conversion Stage"
             v-model="formData.currentConversion"
             :options="conversionOptions"

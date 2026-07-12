@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import AppInput from '@/shared/components/AppInput.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
 import AppButton from '@/shared/components/AppButton.vue'
-import { MagnifyingGlassIcon, ArrowPathIcon, XMarkIcon, DocumentArrowDownIcon, PlusIcon } from '@heroicons/vue/24/outline'
+import { MagnifyingGlassIcon, ArrowPathIcon, XMarkIcon, DocumentArrowDownIcon, PlusIcon, FunnelIcon } from '@heroicons/vue/24/outline'
+
+const showMobileFilters = ref(false)
 
 const props = defineProps<{
   search: string
@@ -35,44 +38,55 @@ const options = props.statusOptions || defaultStatusOptions
   <div class="flex flex-col lg:flex-row gap-4 p-5 bg-white border-b border-gray-100">
     <!-- Left: Search & Filter -->
     <div class="flex flex-col sm:flex-row gap-3 flex-1">
-      <div class="w-full sm:w-64">
-        <AppInput 
-          :modelValue="search"
-          @update:modelValue="emit('update:search', $event)"
-          placeholder="Search..."
-          :icon="MagnifyingGlassIcon"
-        />
+      <div class="flex gap-2 w-full sm:w-auto">
+        <div class="flex-1 sm:w-64">
+          <AppInput 
+            :modelValue="search"
+            @update:modelValue="emit('update:search', $event)"
+            placeholder="Search..."
+            :icon="MagnifyingGlassIcon"
+          />
+        </div>
+        <!-- Toggle button for mobile -->
+        <AppButton variant="outline" class="sm:hidden px-3" @click="showMobileFilters = !showMobileFilters" title="Toggle Filters">
+          <FunnelIcon class="w-5 h-5" :class="{ 'text-primary-600': showMobileFilters }" />
+        </AppButton>
       </div>
-      <div class="w-full sm:w-48">
-        <AppSelect 
-          :modelValue="status"
-          @update:modelValue="emit('update:status', $event)"
-          :options="options"
-        />
-      </div>
-
-      <!-- Custom Filters Slot -->
-      <slot name="filters"></slot>
       
-      <div class="flex gap-2">
-        <AppButton 
-          v-if="search || status"
-          variant="outline" 
-          @click="emit('clear')"
-          class="px-3"
-          title="Clear Filters"
-        >
-          <XMarkIcon class="w-5 h-5" />
-        </AppButton>
-        <AppButton 
-          variant="outline" 
-          @click="emit('refresh')"
-          :loading="loading"
-          class="px-3"
-          title="Refresh Data"
-        >
-          <ArrowPathIcon class="w-5 h-5" />
-        </AppButton>
+      <div class="flex-col sm:flex-row gap-3 flex-1" :class="showMobileFilters ? 'flex' : 'hidden sm:flex'">
+        <div class="w-full sm:w-48">
+          <AppSelect 
+            :modelValue="status"
+            @update:modelValue="emit('update:status', $event)"
+            :options="options"
+          />
+        </div>
+
+        <!-- Custom Filters Slot -->
+        <div class="flex-1 flex flex-col sm:flex-row w-full">
+          <slot name="filters"></slot>
+        </div>
+        
+        <div class="flex gap-2 mt-1 sm:mt-0">
+          <AppButton 
+            v-if="search || status"
+            variant="outline" 
+            @click="emit('clear')"
+            class="px-3 flex-1 sm:flex-none justify-center"
+            title="Clear Filters"
+          >
+            <XMarkIcon class="w-5 h-5" />
+          </AppButton>
+          <AppButton 
+            variant="outline" 
+            @click="emit('refresh')"
+            :loading="loading"
+            class="px-3 flex-1 sm:flex-none justify-center"
+            title="Refresh Data"
+          >
+            <ArrowPathIcon class="w-5 h-5" />
+          </AppButton>
+        </div>
       </div>
     </div>
 

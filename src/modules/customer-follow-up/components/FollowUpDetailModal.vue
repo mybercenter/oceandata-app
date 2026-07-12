@@ -1,9 +1,12 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
+import { ref } from 'vue'
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppStatusBadge from '@/shared/components/AppStatusBadge.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 import WhatsappPreview from '../../message-template/components/WhatsappPreview.vue'
+import EvidenceUploader from './EvidenceUploader.vue'
 import type { CustomerFollowUp } from '../types/customer-follow-up.types'
+import { customerFollowUpService } from '../services/customer-follow-up.service'
 
 const props = defineProps<{
   isOpen: boolean
@@ -12,7 +15,32 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
+  (e: 'updated'): void
 }>()
+
+const isEditingEvidence = ref(false)
+const newEvidenceFile = ref<File | null>(null)
+const isSavingEvidence = ref(false)
+
+const saveEvidence = async () => {
+  if (!newEvidenceFile.value || !props.followUp) return
+  isSavingEvidence.value = true
+  try {
+    const mockUrl = URL.createObjectURL(newEvidenceFile.value)
+    await customerFollowUpService.updateFollowUp(props.followUp.id, {
+      evidence: mockUrl
+    })
+    
+    // Mutate locally for instant feedback
+    props.followUp.evidence = mockUrl
+    
+    emit('updated')
+    isEditingEvidence.value = false
+    newEvidenceFile.value = null
+  } finally {
+    isSavingEvidence.value = false
+  }
+}
 
 const formatDateTime = (isoString?: string) => {
   if (!isoString) return '-'
@@ -80,12 +108,29 @@ const formatConversionColor = (conversion: string) => {
           </dl>
 
           <div class="mt-6">
-            <h3 class="text-sm font-semibold text-gray-900 mb-3 border-b pb-1">Evidence</h3>
-            <div v-if="followUp.evidence" class="w-full h-32 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
-              <img src="https://via.placeholder.com/400x300.png?text=Evidence+Mock" alt="Evidence" class="w-full h-full object-cover" />
+            <div class="flex justify-between items-center mb-3 border-b pb-1">
+              <h3 class="text-sm font-semibold text-gray-900">Evidence</h3>
+              <button 
+                v-if="followUp.evidence && !isEditingEvidence" 
+                @click="isEditingEvidence = true" 
+                class="text-xs font-medium text-primary-600 hover:text-primary-700"
+              >
+                Change Evidence
+              </button>
             </div>
-            <div v-else class="w-full p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-center">
-              <span class="text-xs text-gray-500">No Evidence Uploaded</span>
+            
+            <div v-if="followUp.evidence && !isEditingEvidence" class="w-full h-48 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
+              <img :src="followUp.evidence.startsWith('blob:') ? followUp.evidence : 'https://via.placeholder.com/400x300.png?text=Evidence+Mock'" alt="Evidence" class="w-full h-full object-cover" />
+            </div>
+            
+            <div v-else class="space-y-3">
+              <EvidenceUploader v-model="newEvidenceFile" />
+              <div class="flex justify-end gap-2">
+                <AppButton v-if="followUp.evidence" size="sm" variant="outline" @click="isEditingEvidence = false" :disabled="isSavingEvidence">Cancel</AppButton>
+                <AppButton size="sm" variant="primary" :disabled="!newEvidenceFile" :loading="isSavingEvidence" @click="saveEvidence">
+                  {{ followUp.evidence ? 'Update Evidence' : 'Upload Evidence' }}
+                </AppButton>
+              </div>
             </div>
           </div>
           

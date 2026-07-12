@@ -1,4 +1,4 @@
-﻿import type { CustomerFollowUp } from '../types/customer-follow-up.types'
+import type { CustomerFollowUp } from '../types/customer-follow-up.types'
 import { mockCustomerFollowUps } from '../mock/customer-follow-up.mock'
 import { customerService } from '../../customer/services/customer.service'
 
@@ -57,6 +57,14 @@ class CustomerFollowUpService {
     })
 
     return { ...newFollowUp }
+  }
+
+  async updateFollowUp(id: string, data: Partial<CustomerFollowUp>): Promise<CustomerFollowUp> {
+    await this.delay(400)
+    const index = this.followUps.findIndex(f => f.id === id)
+    if (index === -1) throw new Error('Follow up not found')
+    this.followUps[index] = { ...this.followUps[index], ...data, updatedAt: new Date().toISOString() }
+    return { ...this.followUps[index] }
   }
 
   async openWhatsapp(phone: string, message: string): Promise<boolean> {
