@@ -4,7 +4,7 @@ import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppInput from '@/shared/components/AppInput.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
 import AppButton from '@/shared/components/AppButton.vue'
-import type { Area } from '../../types/area.types'
+import type { Area } from '../types/area.types'
 
 const props = defineProps<{
   isOpen: boolean

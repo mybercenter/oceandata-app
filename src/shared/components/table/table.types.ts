@@ -1,4 +1,4 @@
-﻿export type TableColumnType = 'text' | 'badge' | 'avatar' | 'date' | 'number' | 'status' | 'actions'
+export type TableColumnType = 'text' | 'badge' | 'avatar' | 'date' | 'number' | 'status' | 'actions'
 
 export interface TableColumn {
   key: string
@@ -17,5 +17,5 @@ export interface TablePagination {
 
 export interface TableFilters {
   search: string
-  status: string
+  status?: string
 }

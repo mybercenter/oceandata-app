@@ -1,9 +1,9 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppStatusBadge from '@/shared/components/AppStatusBadge.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 import { BuildingStorefrontIcon, UserGroupIcon, UsersIcon } from '@heroicons/vue/24/outline'
-import type { Area } from '../../types/area.types'
+import type { Area } from '../types/area.types'
 
 const props = defineProps<{
   isOpen: boolean

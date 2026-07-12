@@ -7,7 +7,7 @@ export interface SelectOption {
 }
 
 interface Props {
-  modelValue: string | number | null
+  modelValue?: string | number | null
   options: SelectOption[]
   label?: string
   placeholder?: string

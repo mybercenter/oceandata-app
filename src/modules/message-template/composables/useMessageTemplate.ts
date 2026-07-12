@@ -1,13 +1,13 @@
-﻿import { ref } from 'vue'
+import { ref } from 'vue'
 import type { MessageTemplate } from '../types/message-template.types'
 import { messageTemplateService } from '../services/message-template.service'
 import { useToast } from '@/shared/composables/useToast'
 import type { TablePagination, TableFilters } from '@/shared/components/table/table.types'
 
 export interface MessageTemplateFilters extends TableFilters {
+  status?: string
   areaId?: string
   dedicate?: string
-  status?: string
 }
 
 export const useMessageTemplate = () => {

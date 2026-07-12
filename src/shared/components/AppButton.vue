@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 interface Props {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'text'
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'text' | 'outline'
   size?: 'sm' | 'md' | 'lg'
   disabled?: boolean
   loading?: boolean
@@ -29,6 +29,8 @@ const classes = computed(() => {
       'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-sm': props.variant === 'danger',
       'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500': props.variant === 'ghost',
       'bg-transparent text-primary-600 hover:text-primary-700 focus:ring-primary-500 p-0': props.variant === 'text',
+      'bg-transparent text-primary-600 border border-primary-600 hover:bg-primary-50 focus:ring-primary-500 shadow-sm': props.variant === 'outline',
+
 
       // Sizes
       'px-3 py-1.5 text-sm': props.size === 'sm' && props.variant !== 'text',

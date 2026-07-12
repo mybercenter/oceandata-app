@@ -19,6 +19,9 @@ const props = defineProps<{
   emptyMessage?: string
   showAdd?: boolean
   showExport?: boolean
+  showView?: boolean
+  showEdit?: boolean
+  showDelete?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -132,7 +135,7 @@ const formatNumber = (num?: number) => {
       :showAdd="showAdd"
       :showExport="showExport"
       @update:search="(v) => emit('update:filters', { ...filters!, search: v })"
-      @update:status="(v) => emit('update:filters', { ...filters!, status: v })"
+      @update:status="(v) => emit('update:filters', { ...filters!, status: String(v) })"
       @clear="emit('update:filters', { search: '', status: '' })"
       @refresh="emit('refresh')"
       @add="emit('add')"

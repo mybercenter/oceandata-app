@@ -6,7 +6,7 @@ import AppSelect from '@/shared/components/AppSelect.vue'
 import AppMultiSelect from '@/shared/components/AppMultiSelect.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 
-import type { Employee, EmployeeRole, DedicateType, EmployeeStatus } from '../types/employee.types'
+import type { Employee, DedicateType, EmployeeStatus } from '../types/employee.types'
 import { mockRoles } from '../../role/mock/role.mock'
 import { areaService } from '../../area/services/area.service'
 import { storeService } from '../../store/services/store.service'
@@ -160,7 +160,7 @@ const handleSubmit = (createAnother = false) => {
   }
   
   // Clean up hidden fields before submitting
-  const payload = { ...formData.value }
+  const payload: any = { ...formData.value }
   if (!showStore.value) delete payload.storeId
   if (!showDedicate.value) delete payload.dedicate
 

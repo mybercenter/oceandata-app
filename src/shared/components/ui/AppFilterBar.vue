@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import AppInput from '@/shared/components/AppInput.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
 import AppButton from '@/shared/components/AppButton.vue'
@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:searchQuery', value: string): void
-  (e: 'update:statusFilter', value: string): void
+  (e: 'update:statusFilter', value: string | number): void
   (e: 'refresh'): void
   (e: 'clear'): void
 }>()

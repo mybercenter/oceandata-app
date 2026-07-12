@@ -6,7 +6,7 @@ import { MagnifyingGlassIcon, ArrowPathIcon, XMarkIcon, DocumentArrowDownIcon, P
 
 const props = defineProps<{
   search: string
-  status: string
+  status?: string
   statusOptions?: { label: string; value: string }[]
   loading?: boolean
   showAdd?: boolean
@@ -15,7 +15,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:search', value: string): void
-  (e: 'update:status', value: string): void
+  (e: 'update:status', value: string | number): void
   (e: 'refresh'): void
   (e: 'clear'): void
   (e: 'export'): void

@@ -1,11 +1,11 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref } from 'vue'
 import AppTable, { type TableColumn } from '@/shared/components/AppTable.vue'
 import AppStatusBadge from '@/shared/components/AppStatusBadge.vue'
 import AppDropdown from '@/shared/components/ui/AppDropdown.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 import { EllipsisVerticalIcon, EyeIcon, PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline'
-import type { Area } from '../../types/area.types'
+import type { Area } from '../types/area.types'
 
 const props = defineProps<{
   areas: Area[]

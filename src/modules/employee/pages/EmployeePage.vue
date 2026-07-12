@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
@@ -219,7 +219,7 @@ const getDedicateColor = (dedicate?: string) => {
             <span 
               v-if="row.areas.length > 2"
               class="px-1.5 py-0.5 bg-gray-200 text-gray-700 rounded text-[11px] font-medium border border-gray-300"
-              :title="row.areas.slice(2).map(a => a.name).join(', ')"
+              :title="row.areas.slice(2).map((a: any) => a.name).join(', ')"
             >
               +{{ row.areas.length - 2 }} More
             </span>

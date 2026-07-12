@@ -1,10 +1,11 @@
-﻿import { ref } from 'vue'
+import { ref } from 'vue'
 import type { Permission } from '../types/permission.types'
 import { permissionService } from '../services/permission.service'
 import { useToast } from '@/shared/composables/useToast'
 import type { TablePagination, TableFilters } from '@/shared/components/table/table.types'
 
 export interface PermissionFilters extends TableFilters {
+  status?: string
   module?: string
   action?: string
 }

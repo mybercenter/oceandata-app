@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
@@ -77,7 +77,7 @@ const loadCustomers = async () => {
   isLoadingCustomers.value = true
   try {
     const res = await customerService.getCustomers()
-    customers.value = res.data
+    customers.value = res
   } finally {
     isLoadingCustomers.value = false
   }

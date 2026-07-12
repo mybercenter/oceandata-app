@@ -1,4 +1,4 @@
-﻿import type { Store } from '../types/store.types'
+import type { Store } from '../types/store.types'
 import { mockStores } from '../mock/store.mock'
 
 class StoreService {
@@ -32,7 +32,7 @@ class StoreService {
 
     const newStore: Store = {
       ...data,
-      id: s + Date.now(),
+      id: 's' + Date.now(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       stats: {

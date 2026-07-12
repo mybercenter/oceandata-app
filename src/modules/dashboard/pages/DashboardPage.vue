@@ -37,7 +37,7 @@ const currentDashboardComponent = computed(() => {
         <span class="text-sm font-medium text-gray-500">View as:</span>
         <select 
           :value="currentRole"
-          @change="switchRole($event.target.value as DashboardRole)"
+          @change="switchRole(($event.target as HTMLSelectElement).value as DashboardRole)"
           class="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block p-2 outline-none cursor-pointer"
         >
           <option value="admin">Administrator</option>

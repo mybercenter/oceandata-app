@@ -4,6 +4,7 @@ import AppButton from '@/shared/components/AppButton.vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const handleReload = () => window.location.reload()
 </script>
 
 <template>
@@ -23,7 +24,7 @@ const router = useRouter()
         <AppButton @click="router.push('/')" size="lg">
           Back to Dashboard
         </AppButton>
-        <AppButton variant="secondary" @click="() => window.location.reload()" size="lg">
+        <AppButton variant="secondary" @click="handleReload" size="lg">
           Refresh Page
         </AppButton>
       </div>

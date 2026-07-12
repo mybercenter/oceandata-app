@@ -1,10 +1,11 @@
-﻿import { ref, computed } from 'vue'
+import { ref, computed } from 'vue'
 import type { Customer, FollowUpHistory } from '../types/customer.types'
 import { customerService } from '../services/customer.service'
 import { useToast } from '@/shared/composables/useToast'
 import type { TablePagination, TableFilters } from '@/shared/components/table/table.types'
 
 export interface CustomerFilters extends TableFilters {
+  status?: string
   areaId?: string
   storeId?: string
   employeeId?: string
