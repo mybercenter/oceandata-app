@@ -68,6 +68,13 @@ const isDedicateRequired = computed(() => roleName.value === 'Promotor')
 
 const isAreaRequired = computed(() => roleName.value !== 'Administrator')
 
+const singleAreaId = computed({
+  get: () => formData.value.areaIds[0] || '',
+  set: (val: any) => {
+    formData.value.areaIds = val ? [String(val)] : []
+  }
+})
+
 // Filter stores by selected areas
 const filteredStoreOptions = computed(() => {
   let filtered = stores.value
@@ -212,7 +219,16 @@ const handleSubmit = (createAnother = false) => {
         <h3 class="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider border-b border-gray-100 pb-2">Assignment</h3>
         <div class="space-y-4">
           
+          <AppSelect
+            v-if="roleName === 'Trainer'"
+            label="Area"
+            v-model="singleAreaId"
+            :options="areaOptions"
+            :required="isAreaRequired"
+            placeholder="Select an area..."
+          />
           <AppMultiSelect
+            v-else
             label="Area"
             v-model="formData.areaIds"
             :options="areaOptions"
