@@ -78,11 +78,6 @@ export const navigationConfig: NavigationGroup[] = [
         ]
       },
       {
-        title: 'Customer',
-        route: '/customer',
-        icon: UserCircleIcon,
-      },
-      {
         title: 'Message Template',
         route: '/message-template',
         icon: ChatBubbleLeftRightIcon,
