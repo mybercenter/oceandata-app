@@ -1,11 +1,11 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppStatusBadge from '@/shared/components/AppStatusBadge.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 import { PencilSquareIcon } from '@heroicons/vue/24/outline'
 import type { Role } from '../types/role.types'
-import { roleService } from '../services/role.service'
+import { roleService } from '@/services/api/role.service'
 
 const props = defineProps<{
   isOpen: boolean

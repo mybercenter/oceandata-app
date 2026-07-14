@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed } from 'vue'
 import type { MessageTemplate } from '../../message-template/types/message-template.types'
 
@@ -14,14 +14,14 @@ const emit = defineEmits<{
 
 const options = computed(() => {
   const list = []
-  if (props.templateData?.template1) {
-    list.push({ id: 'Template 1', title: 'Template 1 (Day 1)', text: props.templateData.template1 })
+  if (props.templateData?.template_1) {
+    list.push({ id: 'Template 1', title: 'Template 1 (Day 1)', text: props.templateData.template_1 })
   }
-  if (props.templateData?.template2) {
-    list.push({ id: 'Template 2', title: 'Template 2 (Day 3)', text: props.templateData.template2 })
+  if (props.templateData?.template_2) {
+    list.push({ id: 'Template 2', title: 'Template 2 (Day 3)', text: props.templateData.template_2 })
   }
-  if (props.templateData?.template3) {
-    list.push({ id: 'Template 3', title: 'Template 3 (Day 7)', text: props.templateData.template3 })
+  if (props.templateData?.template_3) {
+    list.push({ id: 'Template 3', title: 'Template 3 (Day 7)', text: props.templateData.template_3 })
   }
   list.push({ id: 'Free Text', title: 'Free Text', text: '' })
   return list

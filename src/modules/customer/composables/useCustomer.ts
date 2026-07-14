@@ -1,181 +1,91 @@
-import { ref, computed } from 'vue'
-import type { Customer, FollowUpHistory } from '../types/customer.types'
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useCustomerStore } from '@/stores/customer.store'
 import { customerService } from '../services/customer.service'
 import { useToast } from '@/shared/composables/useToast'
-import type { TablePagination, TableFilters } from '@/shared/components/table/table.types'
-
-export interface CustomerFilters extends TableFilters {
-  status?: string
-  areaId?: string
-  storeId?: string
-  employeeId?: string
-  customerStatus?: string
-  currentConversion?: string
-  dateRange?: { start: string, end: string }
-}
 
 export const useCustomer = () => {
-  const customers = ref<Customer[]>([])
-  const allCustomers = ref<Customer[]>([]) // For metrics
-  const isLoading = ref(false)
-  const isSubmitting = ref(false)
-  
-  const filters = ref<CustomerFilters>({
-    search: '',
-    areaId: '',
-    storeId: '',
-    employeeId: '',
-    customerStatus: '',
-    currentConversion: ''
-  })
+  const store = useCustomerStore()
+  const { 
+    customers, 
+    customer, 
+    loading: isLoading, 
+    submitting: isSubmitting, 
+    pagination, 
+    filters, 
+    sort 
+  } = storeToRefs(store)
 
-  const pagination = ref<TablePagination>({
-    page: 1,
-    limit: 10,
-    total: 0
-  })
-  
-  const sort = ref({ key: 'customerDate', order: 'desc' })
   const toast = useToast()
 
   const fetchCustomers = async () => {
-    isLoading.value = true
-    try {
-      const all = await customerService.getCustomers()
-      allCustomers.value = all // Keep raw copy for global metrics if needed
-      
-      let result = all.filter(c => {
-        const searchTerms = filters.value.search.toLowerCase()
-        const matchSearch = c.fullName.toLowerCase().includes(searchTerms) || 
-                            (c.phone || '').includes(searchTerms) || 
-                            (c.product || '').toLowerCase().includes(searchTerms)
-        
-        const matchEmployee = filters.value.employeeId ? c.employeeId === filters.value.employeeId : true
-        const matchStore = filters.value.storeId ? c.employee?.storeId === filters.value.storeId : true
-        
-        // Match Area through Employee -> Store -> Area
-        const matchArea = filters.value.areaId ? c.employee?.areas?.some(a => a.id === filters.value.areaId) : true
-        
-        const matchStatus = filters.value.customerStatus ? c.customerStatus === filters.value.customerStatus : true
-        const matchConversion = filters.value.currentConversion ? c.currentConversion === filters.value.currentConversion : true
-        
-        return matchSearch && matchEmployee && matchStore && matchArea && matchStatus && matchConversion
-      })
-
-      if (sort.value.key) {
-        result.sort((a, b) => {
-          let valA: any = (a as any)[sort.value.key]
-          let valB: any = (b as any)[sort.value.key]
-          
-          if (sort.value.key === 'employee') {
-            valA = a.employee?.fullName || ''
-            valB = b.employee?.fullName || ''
-          }
-          if (sort.value.key === 'store') {
-            valA = a.employee?.store?.name || ''
-            valB = b.employee?.store?.name || ''
-          }
-          
-          if (valA < valB) return sort.value.order === 'asc' ? -1 : 1
-          if (valA > valB) return sort.value.order === 'asc' ? 1 : -1
-          return 0
-        })
-      }
-
-      pagination.value.total = result.length
-      const start = (pagination.value.page - 1) * pagination.value.limit
-      const end = start + pagination.value.limit
-      customers.value = result.slice(start, end)
-      
-    } catch (error: any) {
-      toast.error('Failed to load customers', error.message)
-    } finally {
-      isLoading.value = false
-    }
+    await store.fetchCustomers()
   }
 
-  // CRM Metrics Computed Properties based on currently loaded unfiltered customers
+  // CRM Metrics Computed Properties based on currently loaded unfiltered customers (Wait, if we use server-side pagination, the metrics won't be accurate for ALL customers unless the backend provides an aggregate API). 
+  // For now, we will compute metrics based on the loaded page, or if it requires global metrics, backend integration is needed. 
+  // Let's provide a basic computation so the component doesn't break, but ideally we'd fetch stats from a backend endpoint in the future.
   const metrics = computed(() => {
     const today = new Date().toISOString().split('T')[0]
     const thisMonthPrefix = today.substring(0, 7) // YYYY-MM
     
     return {
-      total: allCustomers.value.length,
-      inquiry: allCustomers.value.filter(c => c.customerStatus === 'Inquiry').length,
-      purchased: allCustomers.value.filter(c => c.customerStatus === 'Purchased').length,
-      potential: allCustomers.value.filter(c => c.currentConversion === 'Potential').length,
-      prospect: allCustomers.value.filter(c => c.currentConversion === 'Prospect').length,
-      hotProspect: allCustomers.value.filter(c => c.currentConversion === 'Hot Prospect').length,
-      today: allCustomers.value.filter(c => c.customerDate === today).length,
-      thisMonth: allCustomers.value.filter(c => c.customerDate.startsWith(thisMonthPrefix)).length
+      total: pagination.value.total || customers.value.length,
+      inquiry: customers.value.filter(c => c.customer_status === 'Inquiry').length,
+      purchased: customers.value.filter(c => c.customer_status === 'Purchased').length,
+      potential: customers.value.filter(c => c.current_conversion === 'Potential').length,
+      prospect: customers.value.filter(c => c.current_conversion === 'Prospect').length,
+      hotProspect: customers.value.filter(c => c.current_conversion === 'Hot Prospect').length,
+      today: customers.value.filter(c => c.customer_date === today).length,
+      thisMonth: customers.value.filter(c => (c.customer_date || '').startsWith(thisMonthPrefix)).length
     }
   })
 
-  const getCustomerHistory = async (id: string) => {
-    return await customerService.getCustomerHistory(id)
+  const getCustomerHistory = async (id: string | number) => {
+    return await customerService.getHistory(id)
   }
 
   const createCustomer = async (data: any, createAnother = false) => {
-    isSubmitting.value = true
-    try {
-      await customerService.createCustomer(data)
-      toast.success('Customer Created', 'Customer data has been saved.')
-      await fetchCustomers()
-      return true
-    } catch (error: any) {
-      toast.error('Creation Failed', error.message)
-      return false
-    } finally {
-      isSubmitting.value = false
-    }
+    return await store.createCustomer(data)
   }
 
-  const updateCustomer = async (id: string, data: any) => {
-    isSubmitting.value = true
-    try {
-      await customerService.updateCustomer(id, data)
-      toast.success('Customer Updated', 'Customer data has been successfully updated.')
-      await fetchCustomers()
-      return true
-    } catch (error: any) {
-      toast.error('Update Failed', error.message)
-      return false
-    } finally {
-      isSubmitting.value = false
-    }
+  const updateCustomer = async (id: string | number, data: any) => {
+    return await store.updateCustomer(id, data)
   }
 
-  const deleteCustomer = async (id: string) => {
-    try {
-      await customerService.deleteCustomer(id)
-      toast.success('Customer Deleted', 'Customer has been removed.')
-      await fetchCustomers()
-      return true
-    } catch (error: any) {
-      toast.error('Deletion Failed', error.message)
-      return false
-    }
+  const deleteCustomer = async (id: string | number) => {
+    return await store.deleteCustomer(id)
   }
 
-  const deleteSelected = async (ids: string[]) => {
+  const deleteSelected = async (ids: (string|number)[]) => {
     try {
+      store.submitting = true
+      // Naive implementation for bulk delete, as there is no bulk endpoint yet
       for (const id of ids) {
-        await customerService.deleteCustomer(id)
+        await customerService.destroy(id)
       }
-      toast.success('Customers Deleted', ids.length + ' customers removed.')
-      if (customers.value.length === ids.length && pagination.value.page > 1) {
-        pagination.value.page -= 1
-      }
+      toast.success('Success', 'Selected customers deleted')
       await fetchCustomers()
       return true
-    } catch (error: any) {
-      toast.error('Bulk Deletion Failed', error.message)
+    } catch (e: any) {
+      toast.error('Error', 'Failed to delete some customers')
       return false
+    } finally {
+      store.submitting = false
     }
+  }
+  
+  const updateStatus = async (id: string | number) => {
+    return await store.updateStatus(id)
+  }
+  
+  const updateConversion = async (id: string | number, conversion: string) => {
+    return await store.updateConversion(id, conversion)
   }
 
   return {
     customers,
+    customer,
     metrics,
     pagination,
     filters,
@@ -187,6 +97,8 @@ export const useCustomer = () => {
     createCustomer,
     updateCustomer,
     deleteCustomer,
-    deleteSelected
+    deleteSelected,
+    updateStatus,
+    updateConversion
   }
 }

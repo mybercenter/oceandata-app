@@ -8,9 +8,10 @@ import AppInput from '@/shared/components/AppInput.vue'
 import PasswordInput from '@/shared/components/PasswordInput.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 import AuthAlert from '../components/AuthAlert.vue'
-import { authService } from '../services/auth.service'
+import { useAuth } from '@/shared/composables/useAuth'
 
 const router = useRouter()
+const { login } = useAuth()
 const usernameInput = ref<InstanceType<typeof AppInput> | null>(null)
 
 const form = ref({
@@ -32,16 +33,14 @@ const handleLogin = async () => {
 
   try {
     isLoading.value = true
-    const response = await authService.login(form.value.username)
+    await login({
+      username: form.value.username,
+      password: form.value.password
+    })
     
-    // Save token to localStorage for mock navigation guards
-    localStorage.setItem('token', response.token)
-    localStorage.setItem('user', JSON.stringify(response.user))
-    
-    console.log('Logged in as:', response.user.name)
     router.push('/') // Redirect to dashboard
   } catch (err: any) {
-    errorMsg.value = err.message || 'Login failed. Please try again.'
+    errorMsg.value = err.response?.data?.message || err.message || 'Login failed. Please try again.'
   } finally {
     isLoading.value = false
   }

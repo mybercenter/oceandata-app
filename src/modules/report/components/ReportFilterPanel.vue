@@ -1,12 +1,11 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import AppInput from '@/shared/components/AppInput.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 
-import { areaService } from '../../area/services/area.service'
-import { storeService } from '../../store/services/store.service'
-import { employeeService } from '../../employee/services/employee.service'
+import { useLookupStore } from '@/stores/lookup.store'
+import { storeToRefs } from 'pinia'
 import type { ReportFilter } from '../types/report.types'
 
 const props = defineProps<{
@@ -22,14 +21,11 @@ const emit = defineEmits<{
 
 const localFilter = ref<ReportFilter>({ ...props.modelValue })
 
-const areas = ref<any[]>([])
-const stores = ref<any[]>([])
-const employees = ref<any[]>([])
+const lookupStore = useLookupStore()
+const { areas, stores, employees } = storeToRefs(lookupStore)
 
 onMounted(async () => {
-  areas.value = await areaService.getAreas()
-  stores.value = await storeService.getStores()
-  employees.value = await employeeService.getEmployees()
+  await lookupStore.fetchLookups()
 })
 
 watch(() => props.modelValue, (val) => {
@@ -103,7 +99,7 @@ const handleApply = () => {
             v-if="!hideArea"
             label="Area" 
             v-model="localFilter.areaId" 
-            :options="[{label:'All Areas', value:''}, ...areas.map(a => ({label: a.name, value: a.id}))]" 
+            :options="[{label:'All Areas', value:''}, ...areas.map(a => ({label: a.name || a.area_name || (a as any).areaName, value: a.id}))]" 
           />
           <AppSelect 
             label="Store" 
@@ -113,7 +109,7 @@ const handleApply = () => {
           <AppSelect 
             label="Employee" 
             v-model="localFilter.employeeId" 
-            :options="[{label:'All Employees', value:''}, ...employees.map(e => ({label: e.fullName, value: e.id}))]" 
+            :options="[{label:'All Employees', value:''}, ...employees.map(e => ({label: e.name || e.fullName || e.full_name, value: e.id}))]" 
           />
           <AppSelect 
             label="Dedicate" 

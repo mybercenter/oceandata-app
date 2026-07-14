@@ -15,7 +15,7 @@ export interface TablePagination {
   total: number
 }
 
-export interface TableFilters {
+export type TableFilters = {
   search: string
-  status?: string
+  [key: string]: any
 }

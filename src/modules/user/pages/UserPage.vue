@@ -1,5 +1,5 @@
-﻿<script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, watch, computed } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
@@ -8,7 +8,8 @@ import UserFormModal from '../components/UserFormModal.vue'
 import UserDetailModal from '../components/UserDetailModal.vue'
 import ResetPasswordModal from '../components/ResetPasswordModal.vue'
 import { useUser } from '../composables/useUser'
-import { mockRoles } from '../../role/mock/role.mock'
+import { useLookupStore } from '@/stores/lookup.store'
+import { storeToRefs } from 'pinia'
 import { useConfirmDialog } from '@/shared/composables/useConfirmDialog'
 import type { User } from '../types/user.types'
 import { ArrowPathIcon } from '@heroicons/vue/24/outline'
@@ -31,11 +32,25 @@ const {
 const confirm = useConfirmDialog()
 
 // Filter Options
-const roleOptions = ref([{ label: 'All Roles', value: '' }, ...mockRoles.map(r => ({ label: r.name, value: r.id }))])
+const lookupStore = useLookupStore()
+const { roles } = storeToRefs(lookupStore)
+
+onMounted(async () => {
+  await lookupStore.fetchLookups()
+})
+
+const roleOptions = computed(() => {
+  return [{ label: 'All Roles', value: '' }, ...roles.value.map((r: any) => ({ label: r.name, value: r.id }))]
+})
 const lastLoginOptions = [
   { label: 'All Time', value: '' },
   { label: 'Has Logged In', value: 'has_logged_in' },
   { label: 'Never Logged In', value: 'never' }
+]
+const statusOptions = [
+  { label: 'All Status', value: '' },
+  { label: 'Active', value: 'active' },
+  { label: 'Inactive', value: 'inactive' }
 ]
 
 // Columns Configuration
@@ -44,9 +59,8 @@ const columns: TableColumn[] = [
   { key: 'employeeCode', label: 'EMP Code', type: 'text', sortable: true },
   { key: 'role', label: 'Role', type: 'text', sortable: false },
   { key: 'username', label: 'Username', type: 'text', sortable: true },
-  { key: 'status', label: 'Status', type: 'status', align: 'center' },
-  { key: 'lastLogin', label: 'Last Login', type: 'text', sortable: true },
-  { key: 'createdAt', label: 'Created At', type: 'date', sortable: true },
+  { key: 'is_active', label: 'Status', type: 'status', align: 'center' },
+  { key: 'last_login', label: 'Last Login', type: 'text', align: 'right' },
   { key: 'actions', label: 'Actions', type: 'actions', align: 'right' }
 ]
 
@@ -182,11 +196,14 @@ const getRoleColor = (roleName?: string) => {
       :data="users"
       :loading="isLoading"
       :total="pagination.total"
-      :filters="filters"
+      :filters="(filters as any)"
       showAdd
       showExport
+      showEdit
+      showDelete
+      showView
       emptyTitle="No Users Found"
-      @update:filters="filters = $event"
+      @update:filters="filters = ($event as any)"
       @update:pagination="fetchUsers"
       @sort="handleSort"
       @refresh="fetchUsers"
@@ -198,20 +215,21 @@ const getRoleColor = (roleName?: string) => {
     >
       <!-- Custom Filters Slot -->
       <template #filters>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full sm:w-64">
-          <AppSelect v-model="filters.roleId" :options="roleOptions" />
-          <AppSelect v-model="filters.lastLogin" :options="lastLoginOptions" />
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 w-full sm:w-auto">
+          <AppSelect v-model="(filters as any).roleId" :options="roleOptions" />
+          <AppSelect v-model="(filters as any).lastLogin" :options="lastLoginOptions" />
+          <AppSelect v-model="(filters as any).status" :options="statusOptions" />
         </div>
       </template>
 
       <!-- Custom Column: Employee Name -->
       <template #employeeName="{ row }">
-        <span class="font-medium text-gray-900">{{ row.employee?.fullName || '-' }}</span>
+        <span class="font-medium text-gray-900">{{ row.employee?.full_name || '-' }}</span>
       </template>
       
       <!-- Custom Column: Employee Code -->
       <template #employeeCode="{ row }">
-        <span class="text-gray-500 font-mono text-sm">{{ row.employee?.employeeCode || '-' }}</span>
+        <span class="text-gray-500 font-mono text-sm">{{ row.employee?.employee_code || '-' }}</span>
       </template>
 
       <!-- Custom Column: Role -->
@@ -222,9 +240,9 @@ const getRoleColor = (roleName?: string) => {
       </template>
       
       <!-- Custom Column: Last Login -->
-      <template #lastLogin="{ row }">
+      <template #last_login="{ row }">
         <span class="text-gray-600 text-sm">
-          {{ formatLastLogin(row.lastLogin) }}
+          {{ formatLastLogin(row.last_login) }}
         </span>
       </template>
 

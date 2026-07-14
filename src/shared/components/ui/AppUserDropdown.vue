@@ -6,32 +6,27 @@ import {
   ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
 import AppDropdown from './AppDropdown.vue'
+import { useAuth } from '@/shared/composables/useAuth'
 
 const router = useRouter()
+const { user, logout } = useAuth()
 
-// Mock user for now
-const user = {
-  name: 'Admin User',
-  email: 'admin@oceandata.com',
-  role: 'Administrator',
-  avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=465FFF&color=fff'
-}
-
-const handleLogout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
+const handleLogout = async () => {
+  await logout()
   router.push('/auth/login')
 }
 </script>
 
 <template>
-  <AppDropdown width="w-60">
+  <AppDropdown width="w-60" v-if="user">
     <template #trigger="{ isOpen }">
       <button class="flex items-center gap-3 p-1 rounded-full hover:bg-gray-100 transition-colors focus:outline-none" :class="{ 'bg-gray-100': isOpen }">
-        <img :src="user.avatar" :alt="user.name" class="w-9 h-9 rounded-full object-cover border border-gray-200" />
+        <div class="w-9 h-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold border border-primary-200">
+          {{ user.name?.charAt(0).toUpperCase() || 'U' }}
+        </div>
         <div class="hidden sm:block text-left mr-2">
           <p class="text-sm font-semibold text-gray-900 leading-tight">{{ user.name }}</p>
-          <p class="text-xs text-gray-500">{{ user.role }}</p>
+          <p class="text-xs text-gray-500">{{ user.username || 'User' }}</p>
         </div>
       </button>
     </template>

@@ -13,12 +13,8 @@ import FollowUpDetailModal from '../components/FollowUpDetailModal.vue'
 
 import { useCustomerFollowUp } from '../composables/useCustomerFollowUp'
 import type { CustomerFollowUp } from '../types/customer-follow-up.types'
-import { areaService } from '../../area/services/area.service'
-import { storeService } from '../../store/services/store.service'
-import { employeeService } from '../../employee/services/employee.service'
-import type { Area } from '../../area/types/area.types'
-import type { Store } from '../../store/types/store.types'
-import type { Employee } from '../../employee/types/employee.types'
+import { useLookupStore } from '@/stores/lookup.store'
+import { storeToRefs } from 'pinia'
 
 const {
   followUps,
@@ -28,9 +24,8 @@ const {
   openWhatsapp
 } = useCustomerFollowUp()
 
-const areas = ref<Area[]>([])
-const stores = ref<Store[]>([])
-const employees = ref<Employee[]>([])
+const lookupStore = useLookupStore()
+const { areas, stores, employees } = storeToRefs(lookupStore)
 
 const viewMode = ref<'table' | 'calendar' | 'kanban'>('table')
 
@@ -38,15 +33,11 @@ const filters = ref({
   areaId: '',
   storeId: '',
   employeeId: '',
-  dedicate: '',
-  customerStatus: '',
-  conversion: ''
+  dedicate: ''
 })
 
 onMounted(async () => {
-  areas.value = await areaService.getAreas()
-  stores.value = await storeService.getStores()
-  employees.value = await employeeService.getEmployees()
+  await lookupStore.fetchLookups()
   fetchHistory()
 })
 
@@ -69,10 +60,10 @@ const summaryMetrics = computed(() => {
   const thisWeek = Math.min(total, 45)
   const thisMonth = Math.min(total, 120)
   
-  const potential = followUps.value.filter(f => f.conversion === 'Potential').length
-  const prospect = followUps.value.filter(f => f.conversion === 'Prospect').length
-  const hotProspect = followUps.value.filter(f => f.conversion === 'Hot Prospect').length
-  const purchased = followUps.value.filter(f => f.customerStatus === 'Purchased').length
+  const potential = followUps.value.filter(f => (f.customer as any)?.current_conversion === 'Potential').length
+  const prospect = followUps.value.filter(f => (f.customer as any)?.current_conversion === 'Prospect').length
+  const hotProspect = followUps.value.filter(f => (f.customer as any)?.current_conversion === 'Hot Prospect').length
+  const purchased = followUps.value.filter(f => (f.customer as any)?.customer_status === 'Purchased').length
   
   return { total, today, thisWeek, thisMonth, potential, prospect, hotProspect, purchased }
 })

@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppStatusBadge from '@/shared/components/AppStatusBadge.vue'
 import AppButton from '@/shared/components/AppButton.vue'
@@ -69,12 +69,19 @@ const getRoleColor = (roleName?: string) => {
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Status</dt>
             <dd class="text-sm text-gray-900 col-span-2">
-              <AppStatusBadge :status="user.status" />
+              <span :class="[
+                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                user?.is_active 
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-gray-100 text-gray-800'
+              ]">
+                {{ user?.is_active ? 'Active' : 'Inactive' }}
+              </span>
             </dd>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Last Login</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ formatLastLogin(user.lastLogin) }}</dd>
+            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(user.last_login) }}</dd>
           </div>
         </dl>
       </div>
@@ -87,11 +94,11 @@ const getRoleColor = (roleName?: string) => {
         <dl class="space-y-3">
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Full Name</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ user.employee.fullName }}</dd>
+            <dd class="text-sm text-gray-900 col-span-2">{{ user.employee?.full_name || '-' }}</dd>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Code</dt>
-            <dd class="text-sm text-gray-900 col-span-2 font-mono">{{ user.employee.employeeCode }}</dd>
+            <dd class="text-sm text-gray-900 col-span-2 font-mono">{{ user.employee.employee_code }}</dd>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Role</dt>
@@ -112,11 +119,11 @@ const getRoleColor = (roleName?: string) => {
         <dl class="space-y-3">
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Created</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(user.createdAt) }}</dd>
+            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(user.created_at) }}</dd>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Updated</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(user.updatedAt) }}</dd>
+            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(user.updated_at) }}</dd>
           </div>
         </dl>
       </div>

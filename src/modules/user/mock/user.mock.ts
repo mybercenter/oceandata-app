@@ -1,4 +1,4 @@
-﻿import type { User, UserStatus } from '../types/user.types'
+import type { User } from '../types/user.types'
 import { mockEmployees } from '../../employee/mock/employee.mock'
 
 const generateDate = (daysAgo: number) => {
@@ -18,7 +18,7 @@ const generateUsers = (count: number): User[] => {
     const emp = selectedEmployees[i]
     
     // Generate username from email or full name
-    const username = emp.email ? emp.email.split('@')[0] : emp.fullName.toLowerCase().replace(/\s+/g, '.')
+    const username = emp.email ? emp.email.split('@')[0] : emp.full_name.toLowerCase().replace(/\s+/g, '.')
     
     // Random last login
     let lastLogin: string | undefined
@@ -35,13 +35,13 @@ const generateUsers = (count: number): User[] => {
     
     users.push({
       id: 'usr' + (i + 1),
-      employeeId: emp.id,
+      employee_id: emp.id,
       employee: { ...emp }, // Hydrated
       username: username,
-      status: Math.random() > 0.1 ? 'active' : 'inactive',
-      lastLogin: lastLogin,
-      createdAt: generateDate(Math.floor(Math.random() * 100) + 10),
-      updatedAt: generateDate(Math.floor(Math.random() * 10))
+      is_active: Math.random() > 0.1,
+      last_login: lastLogin,
+      created_at: generateDate(Math.floor(Math.random() * 100) + 10),
+      updated_at: generateDate(Math.floor(Math.random() * 10))
     })
   }
   

@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
@@ -39,7 +39,7 @@ const columns: TableColumn[] = [
   { key: 'name', label: 'Permission Name', type: 'text', sortable: true },
   { key: 'module', label: 'Module', type: 'text', sortable: true },
   { key: 'action', label: 'Action', type: 'text', sortable: true },
-  { key: 'createdAt', label: 'Created At', type: 'date', sortable: true },
+  { key: 'created_at', label: 'Created At', type: 'date', sortable: true },
   { key: 'actions', label: 'Actions', type: 'actions', align: 'right' }
 ]
 
@@ -132,11 +132,13 @@ const getActionColor = (action: string) => {
       :data="permissions"
       :loading="isLoading"
       :total="pagination.total"
-      :filters="filters"
+      :filters="(filters as any)"
       showAdd
       showExport
+      showEdit
+      showDelete
       emptyTitle="No Permissions Found"
-      @update:filters="filters = $event"
+      @update:filters="filters = ($event as any)"
       @update:pagination="fetchPermissions"
       @sort="handleSort"
       @refresh="fetchPermissions"
@@ -146,9 +148,9 @@ const getActionColor = (action: string) => {
       @delete-selected="handleDeleteSelected"
     >
       <template #filters>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full sm:w-auto">
-          <AppSelect v-model="filters.module" :options="moduleOptions" />
-          <AppSelect v-model="filters.action" :options="actionOptions" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full sm:w-64">
+          <AppSelect v-model="(filters as any).module" :options="moduleOptions" />
+          <AppSelect v-model="(filters as any).action" :options="actionOptions" />
         </div>
       </template>
 

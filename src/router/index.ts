@@ -171,9 +171,12 @@ const router = createRouter({
   ]
 })
 
-// Navigation Guard for Mock Authentication
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('token')
+// Navigation Guard for Authentication
+router.beforeEach(async (to, from, next) => {
+  const { useAuthStore } = await import('@/stores/auth')
+  const authStore = useAuthStore()
+  
+  const isAuthenticated = await authStore.checkAuth()
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     // Redirect to login if trying to access a protected route without being authenticated

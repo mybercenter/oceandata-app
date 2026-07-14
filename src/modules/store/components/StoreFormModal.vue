@@ -1,12 +1,13 @@
-﻿<script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref, watch, computed, onMounted } from 'vue'
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppInput from '@/shared/components/AppInput.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
+import AppAsyncSelect from '@/shared/components/AppAsyncSelect.vue'
 import AppButton from '@/shared/components/AppButton.vue'
-import type { Store, StoreStatus } from '../types/store.types'
-import { areaService } from '../../area/services/area.service'
-import type { Area } from '../../area/types/area.types'
+import type { Store } from '../types/store.types'
+import { useLookupStore } from '@/stores/lookup.store'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps<{
   isOpen: boolean
@@ -22,24 +23,30 @@ const emit = defineEmits<{
 const formData = ref({
   code: '',
   name: '',
-  areaId: '',
+  area_id: '' as string | number | null,
   address: '',
-  status: 'active' as StoreStatus
+  is_active: true
 })
 
-const areas = ref<Area[]>([])
-const isLoadingAreas = ref(false)
+const lookupStore = useLookupStore()
+
+const initialAreaOption = computed(() => {
+  if (props.initialData?.area) {
+    return {
+      label: props.initialData.area.name,
+      value: props.initialData.area.id
+    }
+  }
+  return null
+})
 
 const statusOptions = [
-  { label: 'Active', value: 'active' },
-  { label: 'Inactive', value: 'inactive' },
-  { label: 'Maintenance', value: 'maintenance' }
+  { label: 'Active', value: true },
+  { label: 'Inactive', value: false }
 ]
 
 onMounted(async () => {
-  isLoadingAreas.value = true
-  areas.value = await areaService.getAreas()
-  isLoadingAreas.value = false
+  await lookupStore.fetchLookups()
 })
 
 watch(() => props.isOpen, (isOpen) => {
@@ -48,17 +55,17 @@ watch(() => props.isOpen, (isOpen) => {
       formData.value = {
         code: props.initialData.code,
         name: props.initialData.name,
-        areaId: props.initialData.areaId,
+        area_id: props.initialData.area?.id || null,
         address: props.initialData.address,
-        status: props.initialData.status
+        is_active: props.initialData.is_active
       }
     } else {
       formData.value = {
         code: '',
         name: '',
-        areaId: '',
+        area_id: null,
         address: '',
-        status: 'active'
+        is_active: true
       }
     }
   }
@@ -76,10 +83,11 @@ const handleSubmit = (createAnother = false) => {
     @close="emit('close')"
   >
     <div class="space-y-4">
-      <AppSelect
+      <AppAsyncSelect
         label="Area"
-        v-model="formData.areaId"
-        :options="areas.map(a => ({ label: a.name, value: a.id }))"
+        v-model="formData.area_id"
+        endpoint="/areas"
+        :initial-option="initialAreaOption"
         required
       />
       
@@ -107,7 +115,7 @@ const handleSubmit = (createAnother = false) => {
 
       <AppSelect
         label="Status"
-        v-model="formData.status"
+        v-model="formData.is_active"
         :options="statusOptions"
         required
       />

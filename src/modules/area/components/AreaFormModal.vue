@@ -20,7 +20,7 @@ const emit = defineEmits<{
 const form = ref({
   code: '',
   name: '',
-  status: 'active'
+  is_active: true
 })
 
 const isEdit = ref(false)
@@ -32,21 +32,21 @@ watch(() => props.isOpen, (isOpen) => {
       form.value = {
         code: props.initialData.code,
         name: props.initialData.name,
-        status: props.initialData.status
+        is_active: props.initialData.is_active
       }
     } else {
       isEdit.value = false
       form.value = {
         code: '',
         name: '',
-        status: 'active'
+        is_active: true
       }
     }
   }
 })
 
 const handleSubmit = (createAnother = false) => {
-  if (!form.value.code || !form.value.name || !form.value.status) return
+  if (!form.value.code || !form.value.name || form.value.is_active === undefined) return
   emit('submit', { ...form.value }, createAnother)
 }
 </script>
@@ -78,10 +78,10 @@ const handleSubmit = (createAnother = false) => {
       
       <AppSelect 
         label="Status" 
-        v-model="form.status"
+        v-model="form.is_active"
         :options="[
-          { label: 'Active', value: 'active' },
-          { label: 'Inactive', value: 'inactive' }
+          { label: 'Active', value: true },
+          { label: 'Inactive', value: false }
         ]"
         required
         :disabled="loading"

@@ -1,13 +1,14 @@
-﻿<script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, watch, computed } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
-import AppSelect from '@/shared/components/AppSelect.vue'
+import AppAsyncSelect from '@/shared/components/AppAsyncSelect.vue'
 import type { TableColumn } from '@/shared/components/table/table.types'
 import StoreFormModal from '../components/StoreFormModal.vue'
 import StoreDetailModal from '../components/StoreDetailModal.vue'
 import { useStore } from '../composables/useStore'
-import { areaService } from '../../area/services/area.service'
+import { useLookupStore } from '@/stores/lookup.store'
+import { storeToRefs } from 'pinia'
 import { useConfirmDialog } from '@/shared/composables/useConfirmDialog'
 import type { Store } from '../types/store.types'
 
@@ -27,8 +28,10 @@ const {
 
 const confirm = useConfirmDialog()
 
-// Area Data for Filter
-const areaOptions = ref<{label: string, value: string}[]>([{ label: 'All Areas', value: '' }])
+const lookupStore = useLookupStore()
+const { areas } = storeToRefs(lookupStore)
+
+// areaOptions no longer needed since we use AppAsyncSelect
 
 // Columns Configuration
 const columns: TableColumn[] = [
@@ -36,8 +39,8 @@ const columns: TableColumn[] = [
   { key: 'name', label: 'Store Name', type: 'text', sortable: true },
   { key: 'area', label: 'Area', type: 'text', sortable: false },
   { key: 'address', label: 'Address', type: 'text', sortable: false },
-  { key: 'status', label: 'Status', type: 'status', align: 'center' },
-  { key: 'updatedAt', label: 'Last Updated', type: 'date', sortable: true },
+  { key: 'is_active', label: 'Status', type: 'status', align: 'center' },
+  { key: 'updated_at', label: 'Last Updated', type: 'date', sortable: true },
   { key: 'actions', label: 'Actions', type: 'actions', align: 'right' }
 ]
 
@@ -47,12 +50,8 @@ const isDetailModalOpen = ref(false)
 const selectedStore = ref<Store | null>(null)
 
 onMounted(async () => {
+  await lookupStore.fetchLookups()
   fetchStores()
-  const areas = await areaService.getAreas()
-  areaOptions.value = [
-    { label: 'All Areas', value: '' },
-    ...areas.map(a => ({ label: a.name, value: a.id }))
-  ]
 })
 
 // Handlers
@@ -137,11 +136,14 @@ watch(filters, () => {
       :data="stores"
       :loading="isLoading"
       :total="pagination.total"
-      :filters="filters"
+      :filters="(filters as any)"
       showAdd
       showExport
+      showEdit
+      showDelete
+      showView
       emptyTitle="No Stores Found"
-      @update:filters="filters = $event"
+      @update:filters="filters = ($event as any)"
       @update:pagination="fetchStores"
       @sort="handleSort"
       @refresh="fetchStores"
@@ -154,9 +156,10 @@ watch(filters, () => {
       <!-- Custom Area Filter Slot -->
       <template #filters>
         <div class="w-full sm:w-48">
-          <AppSelect 
-            v-model="filters.areaId"
-            :options="areaOptions"
+          <AppAsyncSelect 
+            v-model="(filters as any).areaId"
+            endpoint="/areas"
+            placeholder="All Areas"
           />
         </div>
       </template>

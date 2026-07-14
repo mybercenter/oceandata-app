@@ -1,7 +1,7 @@
-﻿import { ref } from 'vue'
+import { ref } from 'vue'
 import type { CustomerFollowUp } from '../types/customer-follow-up.types'
 import { customerFollowUpService } from '../services/customer-follow-up.service'
-import { messageTemplateService } from '../../message-template/services/message-template.service'
+import { messageTemplateService } from '@/services/api/message-template.service'
 import type { MessageTemplate } from '../../message-template/types/message-template.types'
 import { useToast } from '@/shared/composables/useToast'
 import type { TablePagination } from '@/shared/components/table/table.types'
@@ -21,7 +21,7 @@ export const useCustomerFollowUp = () => {
   
   const toast = useToast()
 
-  const fetchHistory = async (customerId?: string) => {
+  const fetchHistory = async (customerId?: string | number) => {
     isLoading.value = true
     try {
       const all = await customerFollowUpService.getFollowUps(customerId)
@@ -38,8 +38,8 @@ export const useCustomerFollowUp = () => {
 
   const fetchTemplates = async (areaId: string, dedicate: 'AV' | 'HA') => {
     try {
-      const all = await messageTemplateService.getTemplates()
-      templates.value = all.filter(t => t.areaId === areaId && t.dedicate === dedicate && t.status === 'active')
+      const { data: all } = await messageTemplateService.index()
+      templates.value = all.filter((t: any) => t.areaId === areaId && t.dedicate === dedicate && t.status === 'active')
     } catch (error: any) {
       toast.error('Failed to load templates', error.message)
     }

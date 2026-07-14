@@ -18,7 +18,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:search', value: string): void
-  (e: 'update:status', value: string | number): void
+  (e: 'update:status', value: string | number | boolean): void
   (e: 'refresh'): void
   (e: 'clear'): void
   (e: 'export'): void

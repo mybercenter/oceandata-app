@@ -5,7 +5,7 @@ import AuthCard from '../components/AuthCard.vue'
 import AppInput from '@/shared/components/AppInput.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 import AuthAlert from '../components/AuthAlert.vue'
-import { authService } from '../services/auth.service'
+import { authService } from '@/services/api/auth.service'
 
 const email = ref('')
 const isLoading = ref(false)

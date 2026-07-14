@@ -1,15 +1,14 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppInput from '@/shared/components/AppInput.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
+import AppAsyncSelect from '@/shared/components/AppAsyncSelect.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 import PasswordInput from '@/shared/components/PasswordInput.vue'
 import { ArrowPathIcon } from '@heroicons/vue/24/outline'
 
-import type { User, UserStatus } from '../types/user.types'
-import { userService } from '../services/user.service'
-import type { Employee } from '../../employee/types/employee.types'
+import type { User } from '../types/user.types'
 
 const props = defineProps<{
   isOpen: boolean
@@ -23,63 +22,55 @@ const emit = defineEmits<{
 }>()
 
 const statusOptions = [
-  { label: 'Active', value: 'active' },
-  { label: 'Inactive', value: 'inactive' }
+  { label: 'Active', value: true },
+  { label: 'Inactive', value: false }
 ]
 
 const formData = ref({
-  employeeId: '',
+  employee_id: null as number | string | null,
   username: '',
   password: '',
   confirmPassword: '',
-  status: 'active' as UserStatus
+  is_active: true
 })
 
-const unregisteredEmployees = ref<Employee[]>([])
-const isLoadingEmployees = ref(false)
+// Map employee item from /employees API response to select option
+const mapEmployeeOption = (item: any) => ({
+  label: `${item.full_name} (${item.employee_code}) - ${item.role?.name || 'No Role'}`,
+  value: item.id
+})
 
-const loadEmployees = async () => {
-  isLoadingEmployees.value = true
-  const list = await userService.getUnregisteredEmployees()
-  unregisteredEmployees.value = list
-  isLoadingEmployees.value = false
-}
-
-const employeeOptions = computed(() => {
-  const options = unregisteredEmployees.value.map(e => ({ 
-    label: e.fullName + ' (' + e.employeeCode + ') - ' + (e.role?.name || ''), 
-    value: e.id 
-  }))
-  
-  if (props.initialData && props.initialData.employee) {
-    options.unshift({
-      label: props.initialData.employee.fullName + ' (' + props.initialData.employee.employeeCode + ') - ' + (props.initialData.employee.role?.name || ''),
-      value: props.initialData.employee.id
-    })
+// Initial option for edit mode (employee already linked)
+const initialEmployeeOption = computed(() => {
+  if (props.initialData?.employee) {
+    const emp = props.initialData.employee
+    return {
+      label: `${emp.full_name} (${(emp as any).employee_code || ''}) - ${(emp as any).role?.name || ''}`,
+      value: emp.id
+    }
   }
-  return options
+  return null
 })
 
 const isEditMode = computed(() => !!props.initialData)
 
 watch(() => props.isOpen, async (isOpen) => {
   if (isOpen) {
-    await loadEmployees()
     if (props.initialData) {
       formData.value = {
-        employeeId: props.initialData.employeeId,
+        employee_id: props.initialData.employee?.id || null,
         username: props.initialData.username,
         password: '',
         confirmPassword: '',
-        status: props.initialData.status
+        is_active: props.initialData.is_active !== undefined ? props.initialData.is_active : true
       }
     } else {
       formData.value = {
-        employeeId: '',
+        employee_id: null,
         username: '',
         password: '',
         confirmPassword: '',
-        status: 'active'
+        is_active: true
       }
     }
   }
@@ -100,7 +91,7 @@ const formError = ref('')
 const handleSubmit = (createAnother = false) => {
   formError.value = ''
   
-  if (!formData.value.employeeId || !formData.value.username) {
+  if (!formData.value.employee_id || !formData.value.username) {
     formError.value = 'Please fill all required fields.'
     return
   }
@@ -120,7 +111,18 @@ const handleSubmit = (createAnother = false) => {
     }
   }
 
-  emit('submit', { ...formData.value }, createAnother)
+  // Send password_confirmation for Laravel validation
+  const payload: any = {
+    employee_id: formData.value.employee_id,
+    username: formData.value.username,
+    is_active: formData.value.is_active,
+  }
+  if (formData.value.password) {
+    payload.password = formData.value.password
+    payload.password_confirmation = formData.value.confirmPassword
+  }
+
+  emit('submit', payload, createAnother)
 }
 </script>
 
@@ -139,11 +141,14 @@ const handleSubmit = (createAnother = false) => {
       <!-- Employee Info -->
       <section>
         <h3 class="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider border-b border-gray-100 pb-2">Employee Information</h3>
-        <AppSelect
+        <AppAsyncSelect
           label="Employee"
-          v-model="formData.employeeId"
-          :options="employeeOptions"
-          :disabled="isEditMode || isLoadingEmployees"
+          v-model="formData.employee_id"
+          endpoint="/employees"
+          :extra-params="isEditMode ? {} : { unregistered: 1 }"
+          :map-option="mapEmployeeOption"
+          :initial-option="initialEmployeeOption"
+          :disabled="isEditMode"
           placeholder="Search unregistered employees..."
           required
         />
@@ -191,7 +196,7 @@ const handleSubmit = (createAnother = false) => {
       <section>
         <AppSelect
           label="Status"
-          v-model="formData.status"
+          v-model="formData.is_active"
           :options="statusOptions"
           required
         />

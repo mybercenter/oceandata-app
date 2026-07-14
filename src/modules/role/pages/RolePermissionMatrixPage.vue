@@ -1,10 +1,11 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
 import AppButton from '@/shared/components/AppButton.vue'
-import { roleService } from '../services/role.service'
-import { permissionService } from '../services/permission.service'
+import { useLookupStore } from '@/stores/lookup.store'
+import { permissionService } from '@/services/api/permission.service'
+import { storeToRefs } from 'pinia'
 import type { Role } from '../types/role.types'
 import type { Permission, ModuleName, ActionName } from '../types/permission.types'
 import { useToast } from '@/shared/composables/useToast'
@@ -12,29 +13,22 @@ import { CheckIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 const toast = useToast()
 
-const roles = ref<Role[]>([])
-const permissions = ref<Permission[]>([])
-const selectedRoleId = ref('')
+const lookupStore = useLookupStore()
+const { roles, permissions } = storeToRefs(lookupStore)
 
+const selectedRoleId = ref('')
 const isLoading = ref(true)
 const isSaving = ref(false)
-
-// Track assigned permission IDs
 const assignedPermissions = ref<Set<string>>(new Set())
 const originalPermissions = ref<Set<string>>(new Set())
 
 onMounted(async () => {
   isLoading.value = true
   try {
-    const [allRoles, allPermissions] = await Promise.all([
-      roleService.getRoles(),
-      permissionService.getPermissions()
-    ])
-    roles.value = allRoles
-    permissions.value = allPermissions
+    await lookupStore.fetchLookups()
 
     if (roles.value.length > 0) {
-      selectedRoleId.value = roles.value[0].id
+      selectedRoleId.value = (roles.value[0] as any).id
     }
   } catch (e: any) {
     toast.error('Initialization Failed', e.message)
@@ -58,20 +52,20 @@ watch(selectedRoleId, async (newVal) => {
 })
 
 const roleOptions = computed(() => {
-  return roles.value.map(r => ({ label: r.name, value: r.id }))
+  return roles.value.map((r: any) => ({ label: r.name, value: r.id }))
 })
 
 // Build Matrix Structure
 const modules = computed(() => {
   const mods = new Set<string>()
-  permissions.value.forEach(p => mods.add(p.module))
+  permissions.value.forEach((p: any) => mods.add(p.module))
   return Array.from(mods).sort()
 })
 
 const actions = ['View', 'Create', 'Update', 'Delete', 'Export', 'Approve']
 
 const getPermissionForCell = (mod: string, act: string) => {
-  return permissions.value.find(p => p.module === mod && p.action === act)
+  return permissions.value.find((p: any) => p.module === mod && p.action === act) as any
 }
 
 const togglePermission = (permId: string) => {
@@ -83,10 +77,10 @@ const togglePermission = (permId: string) => {
 }
 
 const selectAllInModule = (mod: string) => {
-  const modPerms = permissions.value.filter(p => p.module === mod)
-  const allAssigned = modPerms.every(p => assignedPermissions.value.has(p.id))
+  const modPerms = permissions.value.filter((p: any) => p.module === mod)
+  const allAssigned = modPerms.every((p: any) => assignedPermissions.value.has(p.id))
   
-  modPerms.forEach(p => {
+  modPerms.forEach((p: any) => {
     if (allAssigned) {
       assignedPermissions.value.delete(p.id)
     } else {

@@ -1,13 +1,11 @@
-﻿export type AreaStatus = 'active' | 'inactive'
-
 export interface Area {
   id: string
   code: string
   name: string
-  status: AreaStatus
-  createdAt: string
-  updatedAt: string
-  stats: {
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  stats?: {
     totalStores: number
     totalEmployees: number
     totalCustomers: number

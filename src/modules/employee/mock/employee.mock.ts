@@ -1,4 +1,4 @@
-﻿import type { Employee, DedicateType, EmployeeStatus } from '../types/employee.types'
+import type { Employee, DedicateType } from '../types/employee.types'
 import { mockRoles } from '../../role/mock/role.mock'
 import { mockAreas } from '../../area/mock/area.mock'
 import { mockStores } from '../../store/mock/store.mock'
@@ -26,7 +26,7 @@ const generateEmployees = (count: number): Employee[] => {
     if (role.name === 'Promotor') {
       const area = mockAreas[Math.floor(Math.random() * mockAreas.length)]
       assignedAreaIds = [area.id]
-      const areaStores = mockStores.filter(s => s.areaId === area.id)
+      const areaStores = mockStores.filter(s => s.area_id === area.id)
       if (areaStores.length > 0) {
         assignedStoreId = areaStores[Math.floor(Math.random() * areaStores.length)].id
       } else {
@@ -47,7 +47,7 @@ const generateEmployees = (count: number): Employee[] => {
       
       // Store optional
       if (Math.random() > 0.7) {
-        const areaStores = mockStores.filter(s => assignedAreaIds.includes(s.areaId))
+        const areaStores = mockStores.filter(s => assignedAreaIds.includes(s.area_id))
         if (areaStores.length > 0) {
           assignedStoreId = areaStores[Math.floor(Math.random() * areaStores.length)].id
         }
@@ -56,24 +56,23 @@ const generateEmployees = (count: number): Employee[] => {
     
     const fName = firstNames[Math.floor(Math.random() * firstNames.length)]
     const lName = lastNames[Math.floor(Math.random() * lastNames.length)]
-    const fullName = fName + ' ' + lName
+    const full_name = fName + ' ' + lName
     
     employees.push({
       id: 'emp' + i,
-      employeeCode: 'EMP' + String(i).padStart(4, '0'),
-      fullName: fullName,
-      roleId: role.id,
+      employee_code: 'EMP' + String(i).padStart(4, '0'),
+      full_name: full_name,
+      role_id: role.id,
       role: { ...role },
-      areaIds: assignedAreaIds,
       areas: mockAreas.filter(a => assignedAreaIds.includes(a.id)),
-      storeId: assignedStoreId,
+      store_id: assignedStoreId,
       store: assignedStoreId ? mockStores.find(s => s.id === assignedStoreId) : undefined,
       phone: '08' + Math.floor(Math.random() * 900000000 + 100000000),
       email: fName.toLowerCase() + '.' + lName.toLowerCase() + '@oceandata.com',
       dedicate: assignedDedicate,
-      status: Math.random() > 0.2 ? 'active' : 'inactive',
-      createdAt: generateDate(Math.floor(Math.random() * 365)),
-      updatedAt: generateDate(Math.floor(Math.random() * 30)),
+      is_active: Math.random() > 0.2,
+      created_at: generateDate(Math.floor(Math.random() * 365)),
+      updated_at: generateDate(Math.floor(Math.random() * 30)),
       stats: {
         totalCustomers: Math.floor(Math.random() * 500),
         followUps: Math.floor(Math.random() * 100),

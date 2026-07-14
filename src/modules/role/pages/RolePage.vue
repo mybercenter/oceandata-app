@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
@@ -37,9 +37,7 @@ const statusOptions = [
 const columns: TableColumn[] = [
   { key: 'name', label: 'Role Name', type: 'text', sortable: true },
   { key: 'description', label: 'Description', type: 'text', sortable: true },
-  { key: 'permissionsCount', label: 'Total Permissions', type: 'text', sortable: false, align: 'center' },
-  { key: 'status', label: 'Status', type: 'status', align: 'center' },
-  { key: 'createdAt', label: 'Created At', type: 'date', sortable: true },
+  { key: 'created_at', label: 'Created At', type: 'date', sortable: true },
   { key: 'actions', label: 'Actions', type: 'actions', align: 'right' }
 ]
 
@@ -139,11 +137,14 @@ watch(filters, () => {
       :data="roles"
       :loading="isLoading"
       :total="pagination.total"
-      :filters="filters"
+      :filters="(filters as any)"
       showAdd
       showExport
+      showEdit
+      showDelete
+      showView
       emptyTitle="No Roles Found"
-      @update:filters="filters = $event"
+      @update:filters="filters = ($event as any)"
       @update:pagination="fetchRoles"
       @sort="handleSort"
       @refresh="fetchRoles"
@@ -155,14 +156,8 @@ watch(filters, () => {
     >
       <template #filters>
         <div class="w-full sm:w-48">
-          <AppSelect v-model="filters.status" :options="statusOptions" />
+          <AppSelect v-model="(filters as any).status" :options="statusOptions" />
         </div>
-      </template>
-      
-      <template #permissionsCount="{ row }">
-        <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {{ row.permissionsCount || 0 }}
-        </span>
       </template>
     </AppDataTable>
 

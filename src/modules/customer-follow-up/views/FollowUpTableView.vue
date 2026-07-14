@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed } from 'vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
@@ -29,9 +29,9 @@ const emit = defineEmits<{
   (e: 'view-customer', row: any): void
 }>()
 
-const areaOptions = computed(() => [{ label: 'All Areas', value: '' }, ...props.areas.map(a => ({ label: a.name, value: a.id }))])
+const areaOptions = computed(() => [{ label: 'All Areas', value: '' }, ...props.areas.map(a => ({ label: a.name || a.area_name || (a as any).areaName, value: a.id }))])
 const storeOptions = computed(() => [{ label: 'All Stores', value: '' }, ...props.stores.map(s => ({ label: s.name, value: s.id }))])
-const employeeOptions = computed(() => [{ label: 'All Employees', value: '' }, ...props.employees.map(e => ({ label: e.fullName, value: e.id }))])
+const employeeOptions = computed(() => [{ label: 'All Employees', value: '' }, ...props.employees.map(e => ({ label: e.name || e.fullName || e.full_name, value: e.id }))])
 
 const dedicateOptions = [
   { label: 'All Dedicate', value: '' },
@@ -39,18 +39,7 @@ const dedicateOptions = [
   { label: 'HA', value: 'HA' }
 ]
 
-const statusOptions = [
-  { label: 'All Status', value: '' },
-  { label: 'Inquiry', value: 'Inquiry' },
-  { label: 'Purchased', value: 'Purchased' }
-]
 
-const conversionOptions = [
-  { label: 'All Conversion', value: '' },
-  { label: 'Potential', value: 'Potential' },
-  { label: 'Prospect', value: 'Prospect' },
-  { label: 'Hot Prospect', value: 'Hot Prospect' }
-]
 
 const columns: TableColumn[] = [
   { key: 'followUpDate', label: 'Date', type: 'date', sortable: true },
@@ -58,8 +47,7 @@ const columns: TableColumn[] = [
   { key: 'employee', label: 'Employee', type: 'text', sortable: true },
   { key: 'dedicate', label: 'Dedicate', type: 'text', sortable: true },
   { key: 'templateUsed', label: 'Template', type: 'text', sortable: true },
-  { key: 'conversion', label: 'Conversion', type: 'status', align: 'center', sortable: true },
-  { key: 'customerStatus', label: 'Status', type: 'status', align: 'center', sortable: true },
+
   { key: 'evidence', label: 'Evidence', type: 'text', align: 'center' },
   { key: 'actions', label: 'Actions', type: 'actions', align: 'right' }
 ]
@@ -71,14 +59,7 @@ const formatDate = (isoString?: string) => {
   })
 }
 
-const formatConversionColor = (conversion: string) => {
-  switch (conversion) {
-    case 'Hot Prospect': return 'text-red-700 bg-red-100 border-red-200'
-    case 'Prospect': return 'text-orange-700 bg-orange-100 border-orange-200'
-    case 'Potential': return 'text-amber-700 bg-amber-100 border-amber-200'
-    default: return 'text-gray-700 bg-gray-100 border-gray-200'
-  }
-}
+
 </script>
 
 <template>
@@ -105,8 +86,7 @@ const formatConversionColor = (conversion: string) => {
         <AppSelect :model-value="filters.storeId" @update:model-value="v => emit('update:filters', { ...filters, storeId: v })" :options="storeOptions" />
         <AppSelect :model-value="filters.employeeId" @update:model-value="v => emit('update:filters', { ...filters, employeeId: v })" :options="employeeOptions" />
         <AppSelect :model-value="filters.dedicate" @update:model-value="v => emit('update:filters', { ...filters, dedicate: v })" :options="dedicateOptions" />
-        <AppSelect :model-value="filters.customerStatus" @update:model-value="v => emit('update:filters', { ...filters, customerStatus: v })" :options="statusOptions" />
-        <AppSelect :model-value="filters.conversion" @update:model-value="v => emit('update:filters', { ...filters, conversion: v })" :options="conversionOptions" />
+
       </div>
     </template>
 
@@ -116,14 +96,14 @@ const formatConversionColor = (conversion: string) => {
 
     <template #customer="{ row }">
       <div class="flex flex-col">
-        <span class="font-bold text-gray-900">{{ row.customer?.fullName }}</span>
+        <span class="font-bold text-gray-900">{{ row.customer?.full_name }}</span>
         <span class="text-xs text-gray-500">{{ row.customer?.phone }}</span>
       </div>
     </template>
 
     <template #employee="{ row }">
       <div class="flex flex-col">
-        <span class="font-medium text-gray-800">{{ row.employee?.fullName || '-' }}</span>
+        <span class="font-medium text-gray-800">{{ row.employee?.full_name || '-' }}</span>
         <span class="text-[10px] text-gray-500">{{ row.employee?.store?.name || '-' }}</span>
       </div>
     </template>
@@ -136,15 +116,7 @@ const formatConversionColor = (conversion: string) => {
       <span class="text-sm text-gray-700">{{ row.templateUsed }}</span>
     </template>
 
-    <template #customerStatus="{ row }">
-      <AppStatusBadge :status="row.customerStatus === 'Inquiry' ? 'active' : 'purchased'" :label="row.customerStatus" />
-    </template>
 
-    <template #conversion="{ row }">
-      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border" :class="formatConversionColor(row.conversion)">
-        {{ row.conversion }}
-      </span>
-    </template>
 
     <template #evidence="{ row }">
       <div v-if="row.evidence" class="w-8 h-8 rounded border overflow-hidden mx-auto cursor-pointer hover:ring-2 hover:ring-primary-500">

@@ -1,11 +1,11 @@
-﻿<script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+<script setup lang="ts">
+import { ref, watch } from 'vue'
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppStatusBadge from '@/shared/components/AppStatusBadge.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 import AppTabs from '@/shared/components/ui/AppTabs.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
-import { PencilSquareIcon, DocumentTextIcon, CalendarIcon } from '@heroicons/vue/24/outline'
+import { PencilSquareIcon } from '@heroicons/vue/24/outline'
 
 import type { Customer } from '../types/customer.types'
 import CustomerTimeline from './CustomerTimeline.vue'
@@ -75,7 +75,7 @@ const handleHistoryPagination = () => {
 <template>
   <AppModal
     :is-open="isOpen"
-    :title="customer?.fullName ? 'Customer: ' + customer.fullName : 'Customer Details'"
+    :title="customer?.full_name ? 'Customer: ' + customer.full_name : 'Customer Details'"
     size="xl"
     @close="emit('close')"
   >
@@ -83,13 +83,13 @@ const handleHistoryPagination = () => {
       
       <div class="mb-4 bg-gray-50 border border-gray-200 p-4 rounded-lg flex justify-between items-center">
         <div>
-          <h2 class="font-bold text-lg text-gray-900">{{ customer.fullName }}</h2>
+          <h2 class="font-bold text-lg text-gray-900">{{ customer.full_name }}</h2>
           <p class="text-sm text-gray-500">{{ customer.phone || 'No phone number' }}</p>
         </div>
         <div class="flex flex-col items-end gap-2">
-          <AppStatusBadge :status="customer.customerStatus === 'Inquiry' ? 'active' : 'purchased'" :label="customer.customerStatus" />
-          <span class="px-2.5 py-0.5 rounded-full text-xs font-medium border" :class="formatConversionColor(customer.currentConversion)">
-            {{ customer.currentConversion }}
+          <AppStatusBadge :status="customer.customer_status === 'Inquiry' ? 'active' : 'purchased'" :label="customer.customer_status" />
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-medium border" :class="formatConversionColor(customer.current_conversion)">
+            {{ customer.current_conversion }}
           </span>
         </div>
       </div>
@@ -102,7 +102,7 @@ const handleHistoryPagination = () => {
             <dl class="space-y-3">
               <div>
                 <dt class="text-xs font-medium text-gray-500">Customer Date</dt>
-                <dd class="text-sm text-gray-900">{{ formatDate(customer.customerDate) }}</dd>
+                <dd class="text-sm text-gray-900">{{ formatDate(customer.customer_date) }}</dd>
               </div>
               <div>
                 <dt class="text-xs font-medium text-gray-500">Gender</dt>
@@ -110,7 +110,7 @@ const handleHistoryPagination = () => {
               </div>
               <div>
                 <dt class="text-xs font-medium text-gray-500">Social Media</dt>
-                <dd class="text-sm text-gray-900">{{ customer.socialMedia || '-' }}</dd>
+                <dd class="text-sm text-gray-900">{{ customer.social_media || '-' }}</dd>
               </div>
             </dl>
           </div>
@@ -134,7 +134,7 @@ const handleHistoryPagination = () => {
             <dl class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
               <div>
                 <dt class="text-xs font-medium text-gray-500">Employee</dt>
-                <dd class="text-sm text-gray-900 font-medium">{{ customer.employee?.fullName || '-' }}</dd>
+                <dd class="text-sm text-gray-900 col-span-2">{{ customer.employee?.full_name || '-' }}</dd>
               </div>
               <div>
                 <dt class="text-xs font-medium text-gray-500">Store</dt>
@@ -159,7 +159,7 @@ const handleHistoryPagination = () => {
             @update:pagination="handleHistoryPagination"
           >
             <template #date="{ row }">
-              <span class="text-gray-600 whitespace-nowrap">{{ formatDateTime(row.followUpDate) }}</span>
+              <span class="text-gray-600 whitespace-nowrap">{{ formatDateTime(row.follow_up_date) }}</span>
             </template>
             
             <template #dedicate="{ row }">
@@ -167,7 +167,7 @@ const handleHistoryPagination = () => {
             </template>
 
             <template #template="{ row }">
-              <span class="text-sm text-gray-700">{{ row.templateUsed }}</span>
+              <span class="text-sm text-gray-700">{{ row.template_used }}</span>
             </template>
 
             <template #conversion="{ row }">
@@ -177,7 +177,7 @@ const handleHistoryPagination = () => {
             </template>
 
             <template #employee="{ row }">
-              <span class="text-sm text-gray-900">{{ row.employee?.fullName }}</span>
+              <span class="text-sm text-gray-900">{{ row.employee?.full_name }}</span>
             </template>
 
             <template #notes="{ row }">
@@ -192,10 +192,10 @@ const handleHistoryPagination = () => {
         <div v-if="activeTab === 2">
           <div class="max-w-md mx-auto py-4">
             <CustomerTimeline 
-              :created-at="customer.createdAt"
-              :conversion="customer.currentConversion"
-              :status="customer.customerStatus"
-              :last-follow-up="customer.lastFollowUp"
+              :created-at="customer.created_at || ''"
+              :conversion="customer.current_conversion"
+              :status="customer.customer_status"
+              :last-follow-up="customer.latest_follow_up?.follow_up_date"
             />
           </div>
         </div>

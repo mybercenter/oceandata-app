@@ -50,14 +50,7 @@ const formatDateTime = (isoString?: string) => {
   })
 }
 
-const formatConversionColor = (conversion: string) => {
-  switch (conversion) {
-    case 'Hot Prospect': return 'text-red-700 bg-red-100 border-red-200'
-    case 'Prospect': return 'text-orange-700 bg-orange-100 border-orange-200'
-    case 'Potential': return 'text-amber-700 bg-amber-100 border-amber-200'
-    default: return 'text-gray-700 bg-gray-100 border-gray-200'
-  }
-}
+
 </script>
 
 <template>
@@ -72,14 +65,10 @@ const formatConversionColor = (conversion: string) => {
       <!-- Header -->
       <div class="flex flex-col md:flex-row gap-4 bg-gray-50 border border-gray-200 rounded-lg p-4 justify-between md:items-center">
         <div>
-          <h2 class="text-lg font-bold text-gray-900">Follow Up: {{ followUp.customer?.fullName }}</h2>
+          <h2 class="text-lg font-bold text-gray-900">Follow Up: {{ followUp.customer?.full_name }}</h2>
           <p class="text-sm text-gray-500">{{ formatDateTime(followUp.followUpDate) }}</p>
         </div>
         <div class="flex items-center gap-2">
-          <AppStatusBadge :status="followUp.customerStatus === 'Inquiry' ? 'active' : 'purchased'" :label="followUp.customerStatus" />
-          <span class="px-2.5 py-0.5 rounded-full text-xs font-medium border" :class="formatConversionColor(followUp.conversion)">
-            {{ followUp.conversion }}
-          </span>
         </div>
       </div>
 
@@ -99,7 +88,7 @@ const formatConversionColor = (conversion: string) => {
             </div>
             <div>
               <dt class="text-xs font-medium text-gray-500">Performed By</dt>
-              <dd class="text-sm text-gray-900">{{ followUp.employee?.fullName || '-' }}</dd>
+              <dd class="text-sm text-gray-900">{{ followUp.employee?.full_name || '-' }}</dd>
             </div>
             <div>
               <dt class="text-xs font-medium text-gray-500">Store & Area</dt>

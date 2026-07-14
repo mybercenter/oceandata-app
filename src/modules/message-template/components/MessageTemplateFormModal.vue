@@ -1,18 +1,16 @@
-﻿<script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
 import AppModal from '@/shared/components/ui/AppModal.vue'
-import AppInput from '@/shared/components/AppInput.vue'
 import AppTextarea from '@/shared/components/AppTextarea.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
+import AppAsyncSelect from '@/shared/components/AppAsyncSelect.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 
 import WhatsappPreview from './WhatsappPreview.vue'
 import PlaceholderHelper from './PlaceholderHelper.vue'
 import CharacterCounter from './CharacterCounter.vue'
 
-import type { MessageTemplate, DedicateType, TemplateStatus } from '../types/message-template.types'
-import { areaService } from '../../area/services/area.service'
-import type { Area } from '../../area/types/area.types'
+import type { MessageTemplate, DedicateType } from '../types/message-template.types'
 
 const props = defineProps<{
   isOpen: boolean
@@ -25,20 +23,12 @@ const emit = defineEmits<{
   (e: 'submit', data: any, createAnother: boolean): void
 }>()
 
-const areas = ref<Area[]>([])
-const isLoadingAreas = ref(false)
-
-onMounted(async () => {
-  isLoadingAreas.value = true
-  try {
-    areas.value = await areaService.getAreas()
-  } finally {
-    isLoadingAreas.value = false
+// Initial area option for edit mode
+const initialAreaOption = computed(() => {
+  if (props.initialData?.area) {
+    return { label: props.initialData.area.name, value: props.initialData.area.id }
   }
-})
-
-const areaOptions = computed(() => {
-  return areas.value.map(a => ({ label: a.name, value: a.id }))
+  return null
 })
 
 const dedicateOptions = [
@@ -47,17 +37,17 @@ const dedicateOptions = [
 ]
 
 const statusOptions = [
-  { label: 'Active', value: 'active' },
-  { label: 'Inactive', value: 'inactive' }
+  { label: 'Active', value: true },
+  { label: 'Inactive', value: false }
 ]
 
 const formData = ref({
-  areaId: '',
+  area_id: null as number | string | null,
   dedicate: 'AV' as DedicateType,
-  template1: '',
-  template2: '',
-  template3: '',
-  status: 'active' as TemplateStatus
+  template_1: '',
+  template_2: '',
+  template_3: '',
+  is_active: true
 })
 
 const isEditMode = computed(() => !!props.initialData)
@@ -66,21 +56,21 @@ watch(() => props.isOpen, (isOpen) => {
   if (isOpen) {
     if (props.initialData) {
       formData.value = {
-        areaId: props.initialData.areaId,
+        area_id: props.initialData.area?.id || null,
         dedicate: props.initialData.dedicate,
-        template1: props.initialData.template1 || '',
-        template2: props.initialData.template2 || '',
-        template3: props.initialData.template3 || '',
-        status: props.initialData.status
+        template_1: props.initialData.template_1 || '',
+        template_2: props.initialData.template_2 || '',
+        template_3: props.initialData.template_3 || '',
+        is_active: props.initialData.is_active !== undefined ? props.initialData.is_active : true
       }
     } else {
       formData.value = {
-        areaId: '',
+        area_id: null,
         dedicate: 'AV',
-        template1: '',
-        template2: '',
-        template3: '',
-        status: 'active'
+        template_1: '',
+        template_2: '',
+        template_3: '',
+        is_active: true
       }
     }
   }
@@ -88,20 +78,20 @@ watch(() => props.isOpen, (isOpen) => {
 
 const previewMessages = computed(() => {
   const msgs = []
-  if (formData.value.template1) msgs.push(formData.value.template1)
-  if (formData.value.template2) msgs.push(formData.value.template2)
-  if (formData.value.template3) msgs.push(formData.value.template3)
+  if (formData.value.template_1) msgs.push(formData.value.template_1)
+  if (formData.value.template_2) msgs.push(formData.value.template_2)
+  if (formData.value.template_3) msgs.push(formData.value.template_3)
   return msgs
 })
 
 const formError = ref('')
 const handleSubmit = (createAnother = false) => {
   formError.value = ''
-  if (!formData.value.areaId) {
+  if (!formData.value.area_id) {
     formError.value = 'Operational Area is required.'
     return
   }
-  if (!formData.value.template1 && !formData.value.template2 && !formData.value.template3) {
+  if (!formData.value.template_1 && !formData.value.template_2 && !formData.value.template_3) {
     formError.value = 'At least one template message must be filled.'
     return
   }
@@ -128,11 +118,11 @@ const handleSubmit = (createAnother = false) => {
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <AppSelect
+          <AppAsyncSelect
             label="Operational Area"
-            v-model="formData.areaId"
-            :options="areaOptions"
-            :disabled="isLoadingAreas"
+            v-model="formData.area_id"
+            endpoint="/areas"
+            :initial-option="initialAreaOption"
             required
           />
           <AppSelect
@@ -148,36 +138,36 @@ const handleSubmit = (createAnother = false) => {
         <div>
           <AppTextarea
             label="Template 1 (Follow Up Day 1)"
-            v-model="formData.template1"
+            v-model="formData.template_1"
             placeholder="Type your first follow-up message..."
             :rows="5"
           />
-          <CharacterCounter :length="formData.template1.length" />
+          <CharacterCounter :length="formData.template_1.length" />
         </div>
 
         <div>
           <AppTextarea
             label="Template 2 (Follow Up Day 3)"
-            v-model="formData.template2"
+            v-model="formData.template_2"
             placeholder="Type your second follow-up message..."
             :rows="4"
           />
-          <CharacterCounter :length="formData.template2.length" />
+          <CharacterCounter :length="formData.template_2.length" />
         </div>
 
         <div>
           <AppTextarea
             label="Template 3 (Follow Up Day 7)"
-            v-model="formData.template3"
+            v-model="formData.template_3"
             placeholder="Type your third follow-up message..."
             :rows="4"
           />
-          <CharacterCounter :length="formData.template3.length" />
+          <CharacterCounter :length="formData.template_3.length" />
         </div>
 
         <AppSelect
           label="Status"
-          v-model="formData.status"
+          v-model="formData.is_active"
           :options="statusOptions"
           required
         />

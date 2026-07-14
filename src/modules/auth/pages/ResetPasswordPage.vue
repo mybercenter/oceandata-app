@@ -6,7 +6,7 @@ import AuthCard from '../components/AuthCard.vue'
 import PasswordInput from '@/shared/components/PasswordInput.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 import AuthAlert from '../components/AuthAlert.vue'
-import { authService } from '../services/auth.service'
+import { authService } from '@/services/api/auth.service'
 
 const router = useRouter()
 

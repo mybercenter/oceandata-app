@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
@@ -11,8 +11,8 @@ import AppModal from '@/shared/components/ui/AppModal.vue'
 import { useMessageTemplate } from '../composables/useMessageTemplate'
 import { useConfirmDialog } from '@/shared/composables/useConfirmDialog'
 import type { MessageTemplate } from '../types/message-template.types'
-import { areaService } from '../../area/services/area.service'
-import type { Area } from '../../area/types/area.types'
+import { useLookupStore } from '@/stores/lookup.store'
+import { storeToRefs } from 'pinia'
 import { EyeIcon } from '@heroicons/vue/24/outline'
 
 const {
@@ -31,16 +31,18 @@ const {
 
 const confirm = useConfirmDialog()
 
-const areas = ref<Area[]>([])
+const lookupStore = useLookupStore()
+const { areas } = storeToRefs(lookupStore)
+
 onMounted(async () => {
-  areas.value = await areaService.getAreas()
+  await lookupStore.fetchLookups()
   fetchTemplates()
 })
 
 const areaOptions = computed(() => {
   return [
     { label: 'All Areas', value: '' },
-    ...areas.value.map(a => ({ label: a.name, value: a.id }))
+    ...areas.value.map((a: any) => ({ label: a.name || a.area_name || (a as any).areaName, value: a.id }))
   ]
 })
 
@@ -60,8 +62,8 @@ const columns: TableColumn[] = [
   { key: 'area', label: 'Area', type: 'text', sortable: true },
   { key: 'dedicate', label: 'Dedicate', type: 'text', sortable: true },
   { key: 'preview', label: 'Template Preview', type: 'text', sortable: false },
-  { key: 'status', label: 'Status', type: 'status', align: 'center' },
-  { key: 'updatedAt', label: 'Updated At', type: 'date', sortable: true },
+  { key: 'is_active', label: 'Status', type: 'status', align: 'center' },
+  { key: 'updated_at', label: 'Updated At', type: 'date', sortable: true },
   { key: 'actions', label: 'Actions', type: 'actions', align: 'right' }
 ]
 
@@ -92,12 +94,16 @@ const handleEdit = (template: MessageTemplate) => {
   isFormModalOpen.value = true
 }
 
-const handleQuickPreview = (template: MessageTemplate) => {
+const getPreviewMessages = (template: MessageTemplate) => {
   const msgs = []
-  if (template.template1) msgs.push(template.template1)
-  if (template.template2) msgs.push(template.template2)
-  if (template.template3) msgs.push(template.template3)
-  previewMessages.value = msgs
+  if (template.template_1) msgs.push(template.template_1)
+  if (template.template_2) msgs.push(template.template_2)
+  if (template.template_3) msgs.push(template.template_3)
+  return msgs
+}
+
+const handleQuickPreview = (template: MessageTemplate) => {
+  previewMessages.value = getPreviewMessages(template)
   isPreviewModalOpen.value = true
 }
 
@@ -166,11 +172,14 @@ const truncateText = (text?: string) => {
       :data="templates"
       :loading="isLoading"
       :total="pagination.total"
-      :filters="filters"
+      :filters="(filters as any)"
       showAdd
       showExport
+      showEdit
+      showDelete
+      showView
       emptyTitle="No Templates Found"
-      @update:filters="filters = $event"
+      @update:filters="filters = ($event as any)"
       @update:pagination="fetchTemplates"
       @sort="handleSort"
       @refresh="fetchTemplates"
@@ -182,9 +191,9 @@ const truncateText = (text?: string) => {
     >
       <template #filters>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full sm:w-auto">
-          <AppSelect v-model="filters.areaId" :options="areaOptions" />
-          <AppSelect v-model="filters.dedicate" :options="dedicateOptions" />
-          <AppSelect v-model="filters.status" :options="statusOptions" />
+          <AppSelect v-model="(filters as any).areaId" :options="areaOptions" />
+          <AppSelect v-model="(filters as any).dedicate" :options="dedicateOptions" />
+          <AppSelect v-model="(filters as any).status" :options="statusOptions" />
         </div>
       </template>
 
@@ -194,10 +203,10 @@ const truncateText = (text?: string) => {
 
       <template #preview="{ row }">
         <div 
-          class="max-w-xs truncate text-gray-600" 
-          :title="row.template1 || row.template2 || row.template3"
+          class="max-w-xs truncate text-gray-600"
+          :title="row.template_1 || row.template_2 || row.template_3"
         >
-          {{ truncateText(row.template1 || row.template2 || row.template3) }}
+          {{ truncateText(row.template_1 || row.template_2 || row.template_3) }}
         </div>
       </template>
       

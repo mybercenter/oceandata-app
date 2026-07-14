@@ -2,6 +2,7 @@
 import { ref, watch, computed, onMounted } from 'vue'
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
+import AppAsyncSelect from '@/shared/components/AppAsyncSelect.vue'
 import AppInput from '@/shared/components/AppInput.vue'
 import AppTextarea from '@/shared/components/AppTextarea.vue'
 import AppButton from '@/shared/components/AppButton.vue'
@@ -38,51 +39,15 @@ const {
 const currentStep = ref(1)
 
 // Form Data
-const selectedCustomerId = ref('')
+const selectedCustomerId = ref<string | number>('')
 const resolvedCustomer = ref<Customer | null>(null)
 const dedicate = ref<'AV' | 'HA' | ''>('')
 const selectedTemplate = ref('')
 const originalMessage = ref('')
 const editedMessage = ref('')
 const followUpDate = ref(new Date().toISOString().split('T')[0])
-const conversion = ref('')
-const customerStatus = ref('')
 const notes = ref('')
-
-// Available Customers for dropdown if opened without a pre-selected customer
-const customers = ref<Customer[]>([])
-const isLoadingCustomers = ref(false)
-
-const customerOptions = computed(() => {
-  return [{ label: 'Select Customer...', value: '' }, ...customers.value.map(c => ({
-    label: c.fullName + ' - ' + c.phone,
-    value: c.id
-  }))]
-})
-
-const conversionOptions = [
-  { label: 'Potential', value: 'Potential' },
-  { label: 'Prospect', value: 'Prospect' },
-  { label: 'Hot Prospect', value: 'Hot Prospect' }
-]
-
-const statusOptions = [
-  { label: 'Inquiry', value: 'Inquiry' },
-  { label: 'Purchased', value: 'Purchased' }
-]
-
 const formError = ref('')
-
-const loadCustomers = async () => {
-  isLoadingCustomers.value = true
-  try {
-    const res = await customerService.getCustomers()
-    customers.value = res
-  } finally {
-    isLoadingCustomers.value = false
-  }
-}
-
 // Watch for Modal Open
 watch(() => props.isOpen, async (val) => {
   if (val) {
@@ -98,39 +63,36 @@ watch(() => props.isOpen, async (val) => {
     if (props.customer) {
       resolvedCustomer.value = props.customer
       selectedCustomerId.value = props.customer.id
-      conversion.value = props.customer.currentConversion
-      customerStatus.value = props.customer.customerStatus
     } else {
       resolvedCustomer.value = null
       selectedCustomerId.value = ''
-      conversion.value = ''
-      customerStatus.value = ''
-      await loadCustomers()
     }
   }
 })
 
 // Watch customer selection change
-watch(selectedCustomerId, (val) => {
+watch(selectedCustomerId, async (val) => {
   if (val && !props.customer) {
-    const found = customers.value.find(c => c.id === val)
-    if (found) {
-      resolvedCustomer.value = found
-      conversion.value = found.currentConversion
-      customerStatus.value = found.customerStatus
-      
-      // Auto trigger templates if dedicate is already selected
-      if (dedicate.value && found.employee?.store?.areaId) {
-        fetchTemplates(found.employee.store.areaId, dedicate.value)
+    try {
+      const customerDetails = await customerService.show(val)
+      if (customerDetails) {
+        resolvedCustomer.value = customerDetails
+        
+        // Auto trigger templates if dedicate is already selected
+        if (dedicate.value && (customerDetails.employee as any)?.store?.area_id) {
+          fetchTemplates((customerDetails.employee as any).store.area_id, dedicate.value as 'AV'|'HA')
+        }
       }
+    } catch (e) {
+      console.error('Failed to fetch customer details:', e)
     }
   }
 })
 
 // Step 1: Dedicate Selection loads templates
 watch(dedicate, async (val) => {
-  if (val && resolvedCustomer.value?.employee?.store?.areaId) {
-    await fetchTemplates(resolvedCustomer.value.employee.store.areaId, val)
+  if (val && (resolvedCustomer.value?.employee as any)?.store?.area_id) {
+    await fetchTemplates((resolvedCustomer.value!.employee as any).store.area_id, val as 'AV'|'HA')
     selectedTemplate.value = ''
     editedMessage.value = ''
   }
@@ -139,10 +101,10 @@ watch(dedicate, async (val) => {
 const processPlaceholders = (text: string) => {
   if (!resolvedCustomer.value) return text
   let res = text
-  res = res.replace(/{{customer_name}}/g, resolvedCustomer.value.fullName || '')
-  res = res.replace(/{{employee_name}}/g, resolvedCustomer.value.employee?.fullName || '')
-  res = res.replace(/{{store_name}}/g, resolvedCustomer.value.employee?.store?.name || '')
-  res = res.replace(/{{area_name}}/g, resolvedCustomer.value.employee?.areas?.[0]?.name || '')
+  res = res.replace(/{{customer_name}}/g, resolvedCustomer.value.full_name || '')
+  res = res.replace(/{{employee_name}}/g, resolvedCustomer.value.employee?.full_name || '')
+  res = res.replace(/{{store_name}}/g, (resolvedCustomer.value.employee as any)?.store?.name || '')
+  res = res.replace(/{{area_name}}/g, (resolvedCustomer.value.employee as any)?.areas?.[0]?.name || '')
   res = res.replace(/{{product}}/g, resolvedCustomer.value.product || '')
   return res
 }
@@ -209,9 +171,9 @@ const handleSave = async () => {
     templateUsed: selectedTemplate.value,
     whatsappMessage: editedMessage.value,
     followUpDate: followUpDate.value,
-    conversion: conversion.value,
-    customerStatus: customerStatus.value,
-    notes: notes.value
+    notes: notes.value,
+    conversion: resolvedCustomer.value.current_conversion,
+    customerStatus: resolvedCustomer.value.customer_status
   })
 
   if (success) {
@@ -264,16 +226,17 @@ const handleSave = async () => {
         <div v-show="currentStep === 1" class="max-w-xl mx-auto space-y-6 pt-2">
           <div v-if="!customer" class="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200">
             <h3 class="text-sm font-semibold text-gray-900 mb-3">1. Select Target Customer</h3>
-            <AppSelect 
+            <AppAsyncSelect 
               label="Customer" 
               v-model="selectedCustomerId" 
-              :options="customerOptions"
-              :disabled="isLoadingCustomers"
+              endpoint="/customers"
+              placeholder="Search Customer..."
+              :map-option="(c: any) => ({ label: c.full_name + ' - ' + c.phone, value: c.id })"
             />
           </div>
           <div v-else class="mb-6 bg-primary-50 p-4 rounded-xl border border-primary-200 text-center">
             <h3 class="text-xs font-bold text-primary-800 uppercase tracking-wider mb-1">Target Customer</h3>
-            <p class="text-lg font-bold text-primary-900">{{ customer.fullName }}</p>
+            <p class="text-lg font-bold text-primary-900">{{ customer.full_name }}</p>
             <p class="text-sm text-primary-700">{{ customer.phone }}</p>
           </div>
 
@@ -362,10 +325,8 @@ const handleSave = async () => {
         <div v-show="currentStep === 5" class="max-w-3xl mx-auto space-y-6">
           <h2 class="text-xl font-bold text-gray-900 border-b pb-2">Record Follow Up Result</h2>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
             <AppInput type="date" label="Follow Up Date" v-model="followUpDate" required />
-            <AppSelect label="Customer Status" v-model="customerStatus" :options="statusOptions" required />
-            <AppSelect label="Conversion Stage" v-model="conversion" :options="conversionOptions" required />
           </div>
           
           <EvidenceUploader />

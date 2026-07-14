@@ -247,7 +247,7 @@ const formatNumber = (num?: number) => {
               <slot :name="col.key" :row="row" :value="row[col.key]">
                 
                 <!-- Status -->
-                <AppStatusBadge v-if="col.type === 'status'" :status="row[col.key]" />
+                <AppStatusBadge v-if="col.type === 'status'" :status="typeof row[col.key] === 'boolean' ? (row[col.key] ? 'Active' : 'Inactive') : (row[col.key] === 1 ? 'Active' : (row[col.key] === 0 ? 'Inactive' : row[col.key]))" />
                 
                 <!-- Date -->
                 <span v-else-if="col.type === 'date'" class="text-gray-500">{{ formatDate(row[col.key]) }}</span>

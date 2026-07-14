@@ -1,17 +1,16 @@
-﻿import type { Area } from '../../area/types/area.types'
+import type { Area } from '../../area/types/area.types'
 
-export type TemplateStatus = 'active' | 'inactive'
 export type DedicateType = 'AV' | 'HA'
 
 export interface MessageTemplate {
   id: string
-  areaId: string
+  area_id: string
   area?: Area
   dedicate: DedicateType
-  template1: string
-  template2?: string
-  template3?: string
-  status: TemplateStatus
-  createdAt: string
-  updatedAt: string
+  template_1: string
+  template_2?: string
+  template_3?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
 }

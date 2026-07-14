@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppInput from '@/shared/components/AppInput.vue'
@@ -19,15 +19,9 @@ const emit = defineEmits<{
   (e: 'submit', data: any, createAnother: boolean): void
 }>()
 
-const statusOptions = [
-  { label: 'Active', value: 'active' },
-  { label: 'Inactive', value: 'inactive' }
-]
-
 const formData = ref({
   name: '',
-  description: '',
-  status: 'active' as RoleStatus
+  description: ''
 })
 
 const isEditMode = computed(() => !!props.initialData)
@@ -37,14 +31,12 @@ watch(() => props.isOpen, (isOpen) => {
     if (props.initialData) {
       formData.value = {
         name: props.initialData.name,
-        description: props.initialData.description || '',
-        status: props.initialData.status
+        description: props.initialData.description || ''
       }
     } else {
       formData.value = {
         name: '',
-        description: '',
-        status: 'active'
+        description: ''
       }
     }
   }
@@ -86,12 +78,6 @@ const handleSubmit = (createAnother = false) => {
         :rows="3"
       />
 
-      <AppSelect
-        label="Status"
-        v-model="formData.status"
-        :options="statusOptions"
-        required
-      />
     </div>
 
     <template #footer>

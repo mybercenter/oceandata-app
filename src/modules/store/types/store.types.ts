@@ -1,18 +1,16 @@
-﻿import type { Area } from '../../area/types/area.types'
-
-export type StoreStatus = 'active' | 'inactive' | 'maintenance'
+import type { Area } from '../../area/types/area.types'
 
 export interface Store {
   id: string
   code: string
   name: string
-  areaId: string
+  area_id: string
   area?: Area // Hydrated relation
   address: string
-  status: StoreStatus
-  createdAt: string
-  updatedAt: string
-  stats: {
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  stats?: {
     totalEmployees: number
     totalCustomers: number
   }

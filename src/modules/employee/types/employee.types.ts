@@ -3,25 +3,23 @@ import type { Store } from '../../store/types/store.types'
 import type { Role } from '../../role/types/role.types'
 
 export type DedicateType = 'AV' | 'HA' | 'Hybrid'
-export type EmployeeStatus = 'active' | 'inactive'
 
 export interface Employee {
   id: string
-  employeeCode: string
-  fullName: string
-  roleId: string
+  employee_code: string
+  full_name: string
+  role_id: string
   role?: Role
-  areaIds: string[]
   areas?: Area[]
-  storeId?: string
+  store_id?: string
   store?: Store
   phone: string
   email: string
   dedicate?: DedicateType
-  status: EmployeeStatus
-  createdAt: string
-  updatedAt: string
-  stats: {
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  stats?: {
     totalCustomers: number
     followUps: number
     purchasedCustomers: number

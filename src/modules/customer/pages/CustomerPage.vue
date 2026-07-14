@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
@@ -13,15 +13,10 @@ import FollowUpWorkflowModal from '../../customer-follow-up/components/FollowUpW
 
 import { useCustomer } from '../composables/useCustomer'
 import { useConfirmDialog } from '@/shared/composables/useConfirmDialog'
-import { useToast } from '@/shared/composables/useToast'
 import type { Customer } from '../types/customer.types'
 
-import { areaService } from '../../area/services/area.service'
-import { storeService } from '../../store/services/store.service'
-import { employeeService } from '../../employee/services/employee.service'
-import type { Area } from '../../area/types/area.types'
-import type { Store } from '../../store/types/store.types'
-import type { Employee } from '../../employee/types/employee.types'
+import { useLookupStore } from '@/stores/lookup.store'
+import { storeToRefs } from 'pinia'
 
 import { PhoneArrowUpRightIcon } from '@heroicons/vue/24/outline'
 
@@ -42,20 +37,17 @@ const {
 
 const confirm = useConfirmDialog()
 
-const areas = ref<Area[]>([])
-const stores = ref<Store[]>([])
-const employees = ref<Employee[]>([])
+const lookupStore = useLookupStore()
+const { areas, stores, employees } = storeToRefs(lookupStore)
 
 onMounted(async () => {
-  areas.value = await areaService.getAreas()
-  stores.value = await storeService.getStores()
-  employees.value = await employeeService.getEmployees()
+  await lookupStore.fetchLookups()
   fetchCustomers()
 })
 
-const areaOptions = computed(() => [{ label: 'All Areas', value: '' }, ...areas.value.map(a => ({ label: a.name, value: a.id }))])
-const storeOptions = computed(() => [{ label: 'All Stores', value: '' }, ...stores.value.map(s => ({ label: s.name, value: s.id }))])
-const employeeOptions = computed(() => [{ label: 'All Employees', value: '' }, ...employees.value.map(e => ({ label: e.fullName, value: e.id }))])
+const areaOptions = computed(() => [{ label: 'All Areas', value: '' }, ...areas.value.map((a: any) => ({ label: a.name || a.area_name || (a as any).areaName, value: a.id }))])
+const storeOptions = computed(() => [{ label: 'All Stores', value: '' }, ...stores.value.map((s: any) => ({ label: s.name, value: s.id }))])
+const employeeOptions = computed(() => [{ label: 'All Employees', value: '' }, ...employees.value.map((e: any) => ({ label: e.full_name || e.name || (e as any).fullName, value: e.id }))])
 
 const statusOptions = [
   { label: 'All Status', value: '' },
@@ -71,14 +63,14 @@ const conversionOptions = [
 ]
 
 const columns: TableColumn[] = [
-  { key: 'customerDate', label: 'Date', type: 'date', sortable: true },
-  { key: 'fullName', label: 'Customer Name', type: 'text', sortable: true },
+  { key: 'customer_date', label: 'Date', type: 'date', sortable: true },
+  { key: 'full_name', label: 'Customer Name', type: 'text', sortable: true },
   { key: 'phone', label: 'Phone', type: 'text', sortable: false },
   { key: 'product', label: 'Product', type: 'text', sortable: true },
-  { key: 'customerStatus', label: 'Status', type: 'status', align: 'center', sortable: true },
-  { key: 'currentConversion', label: 'Conversion', type: 'status', align: 'center', sortable: true },
+  { key: 'customer_status', label: 'Status', type: 'status', align: 'center', sortable: true },
+  { key: 'current_conversion', label: 'Conversion', type: 'status', align: 'center', sortable: true },
   { key: 'employee', label: 'Employee', type: 'text', sortable: true },
-  { key: 'lastFollowUp', label: 'Last Follow Up', type: 'date', sortable: true },
+  { key: 'latest_follow_up', label: 'Last Follow Up', type: 'date', sortable: true },
   { key: 'actions', label: 'Actions', type: 'actions', align: 'right' }
 ]
 
@@ -116,7 +108,7 @@ const handleFollowUp = (customer: Customer) => {
 const handleDelete = (customer: Customer) => {
   confirm.confirm({
     title: 'Delete Customer',
-    message: 'Are you sure you want to delete customer ' + customer.fullName + '?',
+    message: 'Are you sure you want to delete customer ' + customer.full_name + '?',
     confirmText: 'Delete',
     type: 'danger',
     onConfirm: async () => {
@@ -128,7 +120,7 @@ const handleDelete = (customer: Customer) => {
   })
 }
 
-const handleDeleteSelected = (ids: string[]) => {
+const handleDeleteSelected = (ids: (string|number)[]) => {
   confirm.confirm({
     title: 'Delete Selected Customers',
     message: 'Are you sure you want to delete ' + ids.length + ' selected customers?',
@@ -140,19 +132,29 @@ const handleDeleteSelected = (ids: string[]) => {
   })
 }
 
+const formErrors = ref<Record<string, string[]>>({})
+
 const handleFormSubmit = async (data: any, createAnother: boolean) => {
   let success = false
-  if (selectedCustomer.value) {
-    success = await updateCustomer(selectedCustomer.value.id, data)
-  } else {
-    success = await createCustomer(data)
-  }
-
-  if (success) {
-    if (!createAnother) {
-      isFormModalOpen.value = false
+  formErrors.value = {}
+  
+  try {
+    if (selectedCustomer.value) {
+      success = await updateCustomer(selectedCustomer.value.id, data)
     } else {
-      selectedCustomer.value = null
+      success = await createCustomer(data)
+    }
+
+    if (success) {
+      if (!createAnother) {
+        isFormModalOpen.value = false
+      } else {
+        selectedCustomer.value = null
+      }
+    }
+  } catch (error: any) {
+    if (error.response?.status === 422) {
+      formErrors.value = error.response.data.errors || {}
     }
   }
 }
@@ -197,7 +199,7 @@ const formatDate = (isoString?: string) => {
       showExport
       enableSelection
       emptyTitle="No Customers Found"
-      @update:filters="filters = $event"
+      @update:filters="filters = { ...filters, ...$event }"
       @update:pagination="fetchCustomers"
       @sort="handleSort"
       @refresh="fetchCustomers"
@@ -209,22 +211,22 @@ const formatDate = (isoString?: string) => {
     >
       <template #filters>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
-          <AppSelect v-model="filters.areaId" :options="areaOptions" />
-          <AppSelect v-model="filters.storeId" :options="storeOptions" />
-          <AppSelect v-model="filters.employeeId" :options="employeeOptions" />
-          <AppSelect v-model="filters.customerStatus" :options="statusOptions" />
-          <AppSelect v-model="filters.currentConversion" :options="conversionOptions" />
+          <AppSelect v-model="filters.area_id" :options="areaOptions" />
+          <AppSelect v-model="filters.store_id" :options="storeOptions" />
+          <AppSelect v-model="filters.employee_id" :options="employeeOptions" />
+          <AppSelect v-model="filters.customer_status" :options="statusOptions" />
+          <AppSelect v-model="filters.current_conversion" :options="conversionOptions" />
         </div>
       </template>
 
       <!-- Custom Column Renderers -->
-      <template #customerDate="{ row }">
-        <span class="text-gray-600 font-medium whitespace-nowrap">{{ formatDate(row.customerDate) }}</span>
+      <template #customer_date="{ row }">
+        <span class="text-gray-600 font-medium whitespace-nowrap">{{ formatDate(row.customer_date) }}</span>
       </template>
 
-      <template #fullName="{ row }">
+      <template #full_name="{ row }">
         <div class="flex flex-col">
-          <span class="font-bold text-gray-900">{{ row.fullName }}</span>
+          <span class="font-bold text-gray-900">{{ row.full_name }}</span>
           <span v-if="row.gender" class="text-xs text-gray-400">{{ row.gender }}</span>
         </div>
       </template>
@@ -236,25 +238,25 @@ const formatDate = (isoString?: string) => {
         </div>
       </template>
 
-      <template #customerStatus="{ row }">
-        <AppStatusBadge :status="row.customerStatus === 'Inquiry' ? 'active' : 'purchased'" :label="row.customerStatus" />
+      <template #customer_status="{ row }">
+        <AppStatusBadge :status="row.customer_status === 'Inquiry' ? 'active' : 'purchased'" :label="row.customer_status" />
       </template>
 
-      <template #currentConversion="{ row }">
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border" :class="formatConversionColor(row.currentConversion)">
-          {{ row.currentConversion }}
+      <template #current_conversion="{ row }">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border" :class="formatConversionColor(row.current_conversion)">
+          {{ row.current_conversion }}
         </span>
       </template>
 
       <template #employee="{ row }">
         <div class="flex flex-col">
-          <span class="font-medium text-gray-800">{{ row.employee?.fullName || '-' }}</span>
+          <span class="font-medium text-gray-800">{{ row.employee?.full_name || '-' }}</span>
           <span class="text-xs text-gray-500">{{ row.employee?.store?.name || '-' }}</span>
         </div>
       </template>
 
-      <template #lastFollowUp="{ row }">
-        <span v-if="row.lastFollowUp" class="text-gray-600 whitespace-nowrap">{{ formatDate(row.lastFollowUp) }}</span>
+      <template #latest_follow_up="{ row }">
+        <span v-if="row.latest_follow_up" class="text-gray-600 whitespace-nowrap">{{ formatDate(row.latest_follow_up.follow_up_date) }}</span>
         <span v-else class="text-gray-400 text-xs italic">Never</span>
       </template>
 
@@ -277,6 +279,7 @@ const formatDate = (isoString?: string) => {
       :is-open="isFormModalOpen"
       :initial-data="selectedCustomer"
       :loading="isSubmitting"
+      :errors="formErrors"
       @close="isFormModalOpen = false"
       @submit="handleFormSubmit"
     />

@@ -6,12 +6,9 @@ import AppSelect from '@/shared/components/AppSelect.vue'
 import AppMultiSelect from '@/shared/components/AppMultiSelect.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 
-import type { Employee, DedicateType, EmployeeStatus } from '../types/employee.types'
-import { mockRoles } from '../../role/mock/role.mock'
-import { areaService } from '../../area/services/area.service'
-import { storeService } from '../../store/services/store.service'
-import type { Area } from '../../area/types/area.types'
-import type { Store } from '../../store/types/store.types'
+import type { Employee, DedicateType } from '../types/employee.types'
+import { useLookupStore } from '@/stores/lookup.store'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps<{
   isOpen: boolean
@@ -24,17 +21,15 @@ const emit = defineEmits<{
   (e: 'submit', data: any, createAnother: boolean): void
 }>()
 
-// Data Sources
-const areas = ref<Area[]>([])
-const stores = ref<Store[]>([])
-const roles = ref(mockRoles)
+const lookupStore = useLookupStore()
+const { roles, areas, stores } = storeToRefs(lookupStore)
 
-const roleOptions = computed(() => roles.value.map(r => ({ label: r.name, value: r.id })))
-const areaOptions = computed(() => areas.value.map(a => ({ label: a.name, value: a.id })))
+const roleOptions = computed(() => roles.value?.map((r: any) => ({ label: r.name, value: r.id })) || [])
+const areaOptions = computed(() => areas.value?.map((a: any) => ({ label: a.name, value: String(a.id) })) || [])
 
 const statusOptions = [
-  { label: 'Active', value: 'active' },
-  { label: 'Inactive', value: 'inactive' }
+  { label: 'Active', value: true },
+  { label: 'Inactive', value: false }
 ]
 
 const dedicateOptions = [
@@ -45,19 +40,19 @@ const dedicateOptions = [
 
 // Form State
 const formData = ref({
-  employeeCode: '',
-  fullName: '',
-  roleId: '',
-  areaIds: [] as string[],
-  storeId: '',
+  employee_code: '',
+  full_name: '',
+  role_id: '' as string | number,
+  area_ids: [] as string[],
+  store_id: '' as string | number,
   phone: '',
   email: '',
   dedicate: '' as DedicateType | '',
-  status: 'active' as EmployeeStatus
+  is_active: true
 })
 
 // Dynamic Business Logic State
-const selectedRoleObj = computed(() => roles.value.find(r => r.id === formData.value.roleId))
+const selectedRoleObj = computed(() => roles.value?.find((r: any) => String(r.id) === String(formData.value.role_id)))
 const roleName = computed(() => selectedRoleObj.value?.name)
 
 const showStore = computed(() => roleName.value === 'Promotor')
@@ -69,44 +64,38 @@ const isDedicateRequired = computed(() => roleName.value === 'Promotor')
 const isAreaRequired = computed(() => roleName.value !== 'Administrator')
 
 const singleAreaId = computed({
-  get: () => formData.value.areaIds[0] || '',
+  get: () => formData.value.area_ids[0] || '',
   set: (val: any) => {
-    formData.value.areaIds = val ? [String(val)] : []
+    formData.value.area_ids = val ? [String(val)] : []
   }
 })
 
-// Filter stores by selected areas
 const filteredStoreOptions = computed(() => {
-  let filtered = stores.value
-  if (formData.value.areaIds.length > 0) {
-    filtered = stores.value.filter(s => formData.value.areaIds.includes(s.areaId))
+  let filtered = stores.value || []
+  if (formData.value.area_ids.length > 0) {
+    filtered = filtered.filter((s: any) => formData.value.area_ids.includes(String(s.area_id)))
   }
-  return filtered.map(s => ({ label: s.name, value: s.id }))
+  return filtered.map((s: any) => ({ label: s.name, value: String(s.id) }))
 })
 
 onMounted(async () => {
-  const [a, s] = await Promise.all([
-    areaService.getAreas(),
-    storeService.getStores()
-  ])
-  areas.value = a
-  stores.value = s
+  await lookupStore.fetchLookups()
 })
 
 // Reset dependencies when role changes
-watch(() => formData.value.roleId, (newRole, oldRole) => {
+watch(() => formData.value.role_id, (newRole, oldRole) => {
   if (oldRole && props.isOpen && !props.initialData) {
-    if (!showStore.value) formData.value.storeId = ''
+    if (!showStore.value) formData.value.store_id = ''
     if (!showDedicate.value) formData.value.dedicate = ''
   }
 })
 
 // Reset store if selected areas change and store doesn't belong to them
-watch(() => formData.value.areaIds, (newAreas) => {
-  if (formData.value.storeId && newAreas.length > 0) {
-    const storeObj = stores.value.find(s => s.id === formData.value.storeId)
-    if (storeObj && !newAreas.includes(storeObj.areaId)) {
-      formData.value.storeId = ''
+watch(() => formData.value.area_ids, (newAreas) => {
+  if (formData.value.store_id && newAreas.length > 0) {
+    const storeObj = stores.value?.find((s: any) => s.id === formData.value.store_id)
+    if (storeObj && !newAreas.includes(storeObj.area_id)) {
+      formData.value.store_id = ''
     }
   }
 })
@@ -115,27 +104,27 @@ watch(() => props.isOpen, (isOpen) => {
   if (isOpen) {
     if (props.initialData) {
       formData.value = {
-        employeeCode: props.initialData.employeeCode,
-        fullName: props.initialData.fullName,
-        roleId: props.initialData.roleId,
-        areaIds: [...props.initialData.areaIds],
-        storeId: props.initialData.storeId || '',
-        phone: props.initialData.phone,
-        email: props.initialData.email,
+        employee_code: props.initialData.employee_code || '',
+        full_name: props.initialData.full_name || '',
+        role_id: String(props.initialData.role?.id || ''),
+        area_ids: props.initialData.areas?.map((a: any) => String(a.id)) || [],
+        store_id: String(props.initialData.store?.id || ''),
+        phone: props.initialData.phone || '',
+        email: props.initialData.email || '',
         dedicate: props.initialData.dedicate || '',
-        status: props.initialData.status
+        is_active: props.initialData.is_active !== undefined ? props.initialData.is_active : true
       }
     } else {
       formData.value = {
-        employeeCode: '',
-        fullName: '',
-        roleId: '',
-        areaIds: [],
-        storeId: '',
+        employee_code: '',
+        full_name: '',
+        role_id: '',
+        area_ids: [],
+        store_id: '',
         phone: '',
         email: '',
         dedicate: '',
-        status: 'active'
+        is_active: true
       }
     }
   }
@@ -146,17 +135,17 @@ const formError = ref('')
 const handleSubmit = (createAnother = false) => {
   formError.value = ''
   
-  if (!formData.value.employeeCode || !formData.value.fullName || !formData.value.roleId) {
+  if (!formData.value.employee_code || !formData.value.full_name || !formData.value.role_id) {
     formError.value = 'Please fill all required General Information.'
     return
   }
   
-  if (isAreaRequired.value && formData.value.areaIds.length === 0) {
+  if (isAreaRequired.value && formData.value.area_ids.length === 0) {
     formError.value = 'At least one Area is required for this role.'
     return
   }
   
-  if (isStoreRequired.value && !formData.value.storeId) {
+  if (isStoreRequired.value && !formData.value.store_id) {
     formError.value = 'Store is required for Promotor.'
     return
   }
@@ -167,8 +156,14 @@ const handleSubmit = (createAnother = false) => {
   }
   
   // Clean up hidden fields before submitting
-  const payload: any = { ...formData.value }
-  if (!showStore.value) delete payload.storeId
+  const payload: any = { 
+    ...formData.value,
+    // Cast IDs back to numbers for the backend
+    role_id: Number(formData.value.role_id) || undefined,
+    store_id: formData.value.store_id ? Number(formData.value.store_id) : undefined,
+    area_ids: formData.value.area_ids.map(id => Number(id))
+  }
+  if (!showStore.value) delete payload.store_id
   if (!showDedicate.value) delete payload.dedicate
 
   emit('submit', payload, createAnother)
@@ -194,19 +189,19 @@ const handleSubmit = (createAnother = false) => {
         <div class="space-y-4">
           <AppInput
             label="Employee Code"
-            v-model="formData.employeeCode"
+            v-model="formData.employee_code"
             placeholder="e.g. EMP001"
             required
           />
           <AppInput
             label="Full Name"
-            v-model="formData.fullName"
+            v-model="formData.full_name"
             placeholder="e.g. Budi Santoso"
             required
           />
           <AppSelect
             label="Role"
-            v-model="formData.roleId"
+            v-model="formData.role_id"
             :options="roleOptions"
             placeholder="Select a role..."
             required
@@ -215,7 +210,7 @@ const handleSubmit = (createAnother = false) => {
       </section>
 
       <!-- Assignment -->
-      <section v-if="formData.roleId">
+      <section v-if="formData.role_id">
         <h3 class="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider border-b border-gray-100 pb-2">Assignment</h3>
         <div class="space-y-4">
           
@@ -230,7 +225,7 @@ const handleSubmit = (createAnother = false) => {
           <AppMultiSelect
             v-else
             label="Area"
-            v-model="formData.areaIds"
+            v-model="formData.area_ids"
             :options="areaOptions"
             :required="isAreaRequired"
             placeholder="Select area(s)..."
@@ -239,7 +234,7 @@ const handleSubmit = (createAnother = false) => {
           <AppSelect
             v-if="showStore"
             label="Store"
-            v-model="formData.storeId"
+            v-model="formData.store_id"
             :options="filteredStoreOptions"
             :required="isStoreRequired"
             placeholder="Select a store..."
@@ -278,7 +273,7 @@ const handleSubmit = (createAnother = false) => {
       <section>
         <AppSelect
           label="Status"
-          v-model="formData.status"
+          v-model="formData.is_active"
           :options="statusOptions"
           required
         />

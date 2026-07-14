@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
@@ -29,8 +29,8 @@ const confirm = useConfirmDialog()
 const columns: TableColumn[] = [
   { key: 'code', label: 'Area Code', type: 'text', sortable: true },
   { key: 'name', label: 'Area Name', type: 'text', sortable: true },
-  { key: 'status', label: 'Status', type: 'status', align: 'center' },
-  { key: 'createdAt', label: 'Created At', type: 'date', sortable: true },
+  { key: 'is_active', label: 'Status', type: 'status', align: 'center' },
+  { key: 'created_at', label: 'Created At', type: 'date', sortable: true },
   { key: 'actions', label: 'Actions', type: 'actions', align: 'right' }
 ]
 
@@ -54,9 +54,20 @@ const handleCreateNew = () => {
   isFormModalOpen.value = true
 }
 
-const handleView = (area: Area) => {
-  selectedArea.value = area
-  isDetailModalOpen.value = true
+import { areaService } from '@/services/api/area.service'
+
+const handleView = async (area: Area) => {
+  try {
+    // Show loading state if needed, for now we just fetch directly
+    const detailedArea = await areaService.show(area.id)
+    selectedArea.value = detailedArea
+    isDetailModalOpen.value = true
+  } catch (error) {
+    console.error('Failed to fetch area details:', error)
+    // Fallback to basic info if it fails
+    selectedArea.value = area
+    isDetailModalOpen.value = true
+  }
 }
 
 const handleEdit = (area: Area) => {
@@ -125,11 +136,14 @@ watch(filters, () => {
       :data="areas"
       :loading="isLoading"
       :total="pagination.total"
-      :filters="filters"
+      :filters="(filters as any)"
       showAdd
       showExport
+      showEdit
+      showDelete
+      showView
       emptyTitle="No Areas Found"
-      @update:filters="filters = $event"
+      @update:filters="filters = ($event as any)"
       @update:pagination="fetchAreas"
       @sort="handleSort"
       @refresh="fetchAreas"

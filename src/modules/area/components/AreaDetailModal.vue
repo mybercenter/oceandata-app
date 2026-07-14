@@ -38,19 +38,27 @@ const formatDate = (isoString?: string) => {
         <div class="flex items-start justify-between mb-4">
           <div>
             <h3 class="text-lg font-bold text-gray-900">{{ area.name }}</h3>
-            <p class="text-sm text-gray-500 font-mono mt-1">{{ area.code }}</p>
+            <dd class="text-sm text-gray-900 col-span-2">
+              <span :class="[
+                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                area?.is_active 
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-gray-100 text-gray-800'
+              ]">
+                {{ area?.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </dd>
           </div>
-          <AppStatusBadge :status="area.status" />
         </div>
         
         <div class="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-gray-50">
           <div>
             <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Created At</p>
-            <p class="text-sm text-gray-900">{{ formatDate(area.createdAt) }}</p>
+            <dd class="text-sm text-gray-900 col-span-2">{{ area?.created_at ? new Date(area.created_at).toLocaleString() : '-' }}</dd>
           </div>
           <div>
             <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Last Updated</p>
-            <p class="text-sm text-gray-900">{{ formatDate(area.updatedAt) }}</p>
+            <dd class="text-sm text-gray-900 col-span-2">{{ area?.updated_at ? new Date(area.updated_at).toLocaleString() : '-' }}</dd>
           </div>
         </div>
       </div>
@@ -63,7 +71,7 @@ const formatDate = (isoString?: string) => {
             <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
               <BuildingStorefrontIcon class="w-5 h-5" />
             </div>
-            <p class="text-2xl font-bold text-gray-900">{{ area.stats.totalStores }}</p>
+            <div class="text-xl font-bold text-blue-700">{{ area.stats?.totalStores || 0 }}</div>
             <p class="text-xs text-gray-500 font-medium mt-1">Stores</p>
           </div>
           
@@ -71,7 +79,7 @@ const formatDate = (isoString?: string) => {
             <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-2">
               <UserGroupIcon class="w-5 h-5" />
             </div>
-            <p class="text-2xl font-bold text-gray-900">{{ area.stats.totalEmployees }}</p>
+            <div class="text-xl font-bold text-amber-700">{{ area.stats?.totalEmployees || 0 }}</div>
             <p class="text-xs text-gray-500 font-medium mt-1">Employees</p>
           </div>
           
@@ -79,7 +87,7 @@ const formatDate = (isoString?: string) => {
             <div class="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center mb-2">
               <UsersIcon class="w-5 h-5" />
             </div>
-            <p class="text-2xl font-bold text-gray-900">{{ area.stats.totalCustomers }}</p>
+            <div class="text-xl font-bold text-emerald-700">{{ area.stats?.totalCustomers || 0 }}</div>
             <p class="text-xs text-gray-500 font-medium mt-1">Customers</p>
           </div>
         </div>

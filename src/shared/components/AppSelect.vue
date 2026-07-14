@@ -3,11 +3,11 @@ import { computed } from 'vue'
 
 export interface SelectOption {
   label: string
-  value: string | number
+  value: string | number | boolean
 }
 
 interface Props {
-  modelValue?: string | number | null
+  modelValue?: string | number | boolean | null
   options: SelectOption[]
   label?: string
   placeholder?: string
@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string | number): void
+  (e: 'update:modelValue', value: string | number | boolean): void
 }>()
 
 const selectId = computed(() => props.id || `select-${Math.random().toString(36).substring(2, 9)}`)
@@ -42,7 +42,7 @@ const selectId = computed(() => props.id || `select-${Math.random().toString(36)
       <select
         :id="selectId"
         :value="modelValue"
-        @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
+        @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value === 'true' ? true : ($event.target as HTMLSelectElement).value === 'false' ? false : ($event.target as HTMLSelectElement).value)"
         :disabled="disabled"
         :class="[
           'w-full appearance-none rounded-input border bg-white px-4 py-2.5 pr-10 text-sm text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1',
@@ -53,7 +53,7 @@ const selectId = computed(() => props.id || `select-${Math.random().toString(36)
         ]"
       >
         <option value="" disabled>{{ placeholder }}</option>
-        <option v-for="option in options" :key="option.value" :value="option.value">
+        <option v-for="option in options" :key="String(option.value)" :value="option.value">
           {{ option.label }}
         </option>
       </select>

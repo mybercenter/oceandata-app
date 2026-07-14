@@ -1,41 +1,24 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppInput from '@/shared/components/AppInput.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
+import AppAsyncSelect from '@/shared/components/AppAsyncSelect.vue'
 import AppButton from '@/shared/components/AppButton.vue'
-import AppTextarea from '@/shared/components/AppTextarea.vue'
 
 import type { Customer, CustomerStatus, Conversion, Gender } from '../types/customer.types'
-import { employeeService } from '../../employee/services/employee.service'
-import type { Employee } from '../../employee/types/employee.types'
 
 const props = defineProps<{
   isOpen: boolean
   initialData: Customer | null
   loading?: boolean
+  errors?: Record<string, string[]>
 }>()
 
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'submit', data: any, createAnother: boolean): void
 }>()
-
-const employees = ref<Employee[]>([])
-const isLoadingEmployees = ref(false)
-
-onMounted(async () => {
-  isLoadingEmployees.value = true
-  try {
-    employees.value = await employeeService.getEmployees()
-  } finally {
-    isLoadingEmployees.value = false
-  }
-})
-
-const employeeOptions = computed(() => {
-  return employees.value.map(e => ({ label: e.fullName, value: e.id }))
-})
 
 const genderOptions = [
   { label: 'Male', value: 'Male' },
@@ -59,48 +42,62 @@ const activeOptions = [
 ]
 
 const formData = ref({
-  customerDate: new Date().toISOString().split('T')[0],
-  fullName: '',
+  customer_date: new Date().toISOString().split('T')[0],
+  full_name: '',
   gender: '' as Gender | '',
   phone: '',
-  socialMedia: '',
+  social_media: '',
   product: '',
-  quantity: 1 as number | '',
-  currentConversion: 'Potential' as Conversion,
-  customerStatus: 'Inquiry' as CustomerStatus,
-  isActive: 'true',
-  employeeId: ''
+  quantity: '' as number | '',
+  current_conversion: 'Potential' as Conversion,
+  customer_status: 'Inquiry' as CustomerStatus,
+  is_active: 'true',
+  employee_id: null as number | string | null
+})
+
+const isEditMode = computed(() => !!props.initialData)
+
+// Initial employee option for edit mode
+const initialEmployeeOption = computed(() => {
+  if (props.initialData?.employee) {
+    const emp = props.initialData.employee
+    return {
+      label: `${emp.full_name} (${(emp as any).employee_code || ''}) - ${(emp as any).role?.name || ''}`,
+      value: emp.id
+    }
+  }
+  return null
 })
 
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen) {
     if (props.initialData) {
       formData.value = {
-        customerDate: props.initialData.customerDate,
-        fullName: props.initialData.fullName,
+        customer_date: props.initialData.customer_date || new Date().toISOString().split('T')[0],
+        full_name: props.initialData.full_name || '',
         gender: props.initialData.gender || '',
         phone: props.initialData.phone || '',
-        socialMedia: props.initialData.socialMedia || '',
+        social_media: props.initialData.social_media || '',
         product: props.initialData.product || '',
         quantity: props.initialData.quantity || '',
-        currentConversion: props.initialData.currentConversion,
-        customerStatus: props.initialData.customerStatus,
-        isActive: props.initialData.isActive ? 'true' : 'false',
-        employeeId: props.initialData.employeeId
+        current_conversion: props.initialData.current_conversion || 'Potential',
+        customer_status: props.initialData.customer_status || 'Inquiry',
+        is_active: props.initialData.is_active ? 'true' : 'false',
+        employee_id: props.initialData.employee?.id || null
       }
     } else {
       formData.value = {
-        customerDate: new Date().toISOString().split('T')[0],
-        fullName: '',
+        customer_date: new Date().toISOString().split('T')[0],
+        full_name: '',
         gender: '',
         phone: '',
-        socialMedia: '',
+        social_media: '',
         product: '',
         quantity: '',
-        currentConversion: 'Potential',
-        customerStatus: 'Inquiry',
-        isActive: 'true',
-        employeeId: ''
+        current_conversion: 'Potential',
+        customer_status: 'Inquiry',
+        is_active: 'true',
+        employee_id: null
       }
     }
   }
@@ -109,26 +106,36 @@ watch(() => props.isOpen, (isOpen) => {
 const formError = ref('')
 const handleSubmit = (createAnother = false) => {
   formError.value = ''
-  if (!formData.value.customerDate) {
+  
+  if (!formData.value.customer_date) {
     formError.value = 'Customer Date is required.'
     return
   }
-  if (!formData.value.fullName) {
+  if (!formData.value.full_name) {
     formError.value = 'Customer Name is required.'
     return
   }
-  if (!formData.value.employeeId) {
+  if (isEditMode.value && !formData.value.employee_id) {
     formError.value = 'Assigned Employee is required.'
     return
   }
   
-  const submitData = {
+  const submitData: any = {
     ...formData.value,
-    isActive: formData.value.isActive === 'true',
-    quantity: formData.value.quantity === '' ? undefined : Number(formData.value.quantity)
+    is_active: formData.value.is_active === 'true',
+    quantity: formData.value.quantity === '' ? null : Number(formData.value.quantity)
+  }
+
+  // Remove employee_id if not in edit mode (handled by backend auth context)
+  if (!isEditMode.value) {
+    delete submitData.employee_id
   }
   
   emit('submit', submitData, createAnother)
+}
+
+const getError = (field: string) => {
+  return props.errors?.[field]?.[0]
 }
 </script>
 
@@ -150,25 +157,30 @@ const handleSubmit = (createAnother = false) => {
           <AppInput
             type="date"
             label="Customer Date"
-            v-model="formData.customerDate"
+            v-model="formData.customer_date"
+            :error="getError('customer_date')"
             required
           />
           <AppInput
             label="Customer Name"
-            v-model="formData.fullName"
+            v-model="formData.full_name"
             placeholder="e.g. John Doe"
+            :error="getError('full_name')"
             required
           />
           <AppSelect
             label="Gender"
             v-model="formData.gender"
             :options="[{label: 'Select Gender', value: ''}, ...genderOptions]"
+            :error="getError('gender')"
           />
-          <AppSelect
+          <AppAsyncSelect
+            v-if="isEditMode"
             label="Assigned Employee"
-            v-model="formData.employeeId"
-            :options="employeeOptions"
-            :disabled="isLoadingEmployees"
+            v-model="formData.employee_id"
+            endpoint="/employees"
+            :initial-option="initialEmployeeOption"
+            :error="getError('employee_id')"
             required
           />
         </div>
@@ -182,11 +194,13 @@ const handleSubmit = (createAnother = false) => {
             label="Phone Number"
             v-model="formData.phone"
             placeholder="e.g. 081234567890"
+            :error="getError('phone')"
           />
           <AppInput
             label="Social Media"
-            v-model="formData.socialMedia"
+            v-model="formData.social_media"
             placeholder="e.g. @johndoe (IG/FB)"
+            :error="getError('social_media')"
           />
         </div>
       </section>
@@ -199,12 +213,14 @@ const handleSubmit = (createAnother = false) => {
             label="Interested/Purchased Product"
             v-model="formData.product"
             placeholder="e.g. TV LED 50 Inch"
+            :error="getError('product')"
           />
           <AppInput
             type="number"
             label="Quantity"
             v-model="formData.quantity as any"
             placeholder="e.g. 1"
+            :error="getError('quantity')"
           />
         </div>
       </section>
@@ -215,19 +231,22 @@ const handleSubmit = (createAnother = false) => {
         <div class="space-y-4">
           <AppSelect
             label="Customer Status"
-            v-model="formData.customerStatus"
+            v-model="formData.customer_status"
             :options="statusOptions"
+            :error="getError('customer_status')"
           />
           <AppSelect
             v-if="initialData"
             label="Conversion Stage"
-            v-model="formData.currentConversion"
+            v-model="formData.current_conversion"
             :options="conversionOptions"
+            :error="getError('current_conversion')"
           />
           <AppSelect
             label="System Status"
-            v-model="formData.isActive"
+            v-model="formData.is_active"
             :options="activeOptions"
+            :error="getError('is_active')"
           />
         </div>
       </section>
@@ -256,4 +275,3 @@ const handleSubmit = (createAnother = false) => {
     </template>
   </AppModal>
 </template>
-

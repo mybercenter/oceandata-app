@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppStatusBadge from '@/shared/components/AppStatusBadge.vue'
 import AppButton from '@/shared/components/AppButton.vue'
@@ -20,9 +20,9 @@ const emit = defineEmits<{
 const previewMessages = computed(() => {
   if (!props.template) return []
   const msgs = []
-  if (props.template.template1) msgs.push(props.template.template1)
-  if (props.template.template2) msgs.push(props.template.template2)
-  if (props.template.template3) msgs.push(props.template.template3)
+  if (props.template.template_1) msgs.push(props.template.template_1)
+  if (props.template.template_2) msgs.push(props.template.template_2)
+  if (props.template.template_3) msgs.push(props.template.template_3)
   return msgs
 })
 
@@ -59,7 +59,14 @@ const formatDate = (isoString?: string) => {
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Status</dt>
             <dd class="text-sm text-gray-900 col-span-2">
-              <AppStatusBadge :status="template.status" />
+              <span :class="[
+                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                template?.is_active 
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-gray-100 text-gray-800'
+              ]">
+                {{ template?.is_active ? 'Active' : 'Inactive' }}
+              </span>
             </dd>
           </div>
         </dl>
@@ -79,11 +86,11 @@ const formatDate = (isoString?: string) => {
         <dl class="space-y-3">
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Created</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(template.createdAt) }}</dd>
+            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(template.created_at) }}</dd>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Updated</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(template.updatedAt) }}</dd>
+            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(template.updated_at) }}</dd>
           </div>
         </dl>
       </div>

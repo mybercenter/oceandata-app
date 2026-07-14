@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppStatusBadge from '@/shared/components/AppStatusBadge.vue'
 import AppButton from '@/shared/components/AppButton.vue'
@@ -45,7 +45,7 @@ const getDedicateColor = (dedicate?: string) => {
 <template>
   <AppModal
     :is-open="isOpen"
-    :title="employee?.fullName || 'Employee Details'"
+    :title="employee?.full_name || 'Employee Details'"
     @close="emit('close')"
   >
     <div v-if="employee" class="space-y-6">
@@ -56,24 +56,31 @@ const getDedicateColor = (dedicate?: string) => {
         <dl class="space-y-3">
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Code</dt>
-            <dd class="text-sm text-gray-900 col-span-2 font-mono">{{ employee.employeeCode }}</dd>
+            <dd class="text-sm text-gray-900 col-span-2 font-mono">{{ employee.employee_code || '-' }}</dd>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Full Name</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ employee.fullName }}</dd>
+            <dd class="text-sm text-gray-900 col-span-2"><p class="font-medium text-gray-900">{{ employee?.full_name || '-' }}</p></dd>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Role</dt>
             <dd class="text-sm col-span-2">
               <span class="px-2 py-0.5 rounded-md text-xs font-medium border" :class="getRoleColor(employee.role?.name)">
-                {{ employee.role?.name || '-' }}
+                {{ employee?.full_name || '-' }}
               </span>
             </dd>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Status</dt>
             <dd class="text-sm text-gray-900 col-span-2">
-              <AppStatusBadge :status="employee.status" />
+              <span :class="[
+                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                employee?.is_active 
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-gray-100 text-gray-800'
+              ]">
+                {{ employee?.is_active ? 'Active' : 'Inactive' }}
+              </span>
             </dd>
           </div>
         </dl>
@@ -162,11 +169,11 @@ const getDedicateColor = (dedicate?: string) => {
         <dl class="space-y-3">
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Created</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(employee.createdAt) }}</dd>
+            <dd class="text-sm text-gray-900 col-span-2"><p class="text-sm text-gray-900">{{ employee?.created_at ? new Date(employee.created_at).toLocaleString() : '-' }}</p></dd>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Updated</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(employee.updatedAt) }}</dd>
+            <dd class="text-sm text-gray-900 col-span-2"><p class="text-sm text-gray-900">{{ employee?.updated_at ? new Date(employee.updated_at).toLocaleString() : '-' }}</p></dd>
           </div>
         </dl>
       </div>

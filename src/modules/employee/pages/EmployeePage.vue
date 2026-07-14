@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
@@ -7,9 +7,8 @@ import type { TableColumn } from '@/shared/components/table/table.types'
 import EmployeeFormModal from '../components/EmployeeFormModal.vue'
 import EmployeeDetailModal from '../components/EmployeeDetailModal.vue'
 import { useEmployee } from '../composables/useEmployee'
-import { areaService } from '../../area/services/area.service'
-import { storeService } from '../../store/services/store.service'
-import { mockRoles } from '../../role/mock/role.mock'
+import { useLookupStore } from '@/stores/lookup.store'
+import { storeToRefs } from 'pinia'
 import { useConfirmDialog } from '@/shared/composables/useConfirmDialog'
 import type { Employee } from '../types/employee.types'
 
@@ -29,10 +28,13 @@ const {
 
 const confirm = useConfirmDialog()
 
-// Filter Options
-const roleOptions = ref([{ label: 'All Roles', value: '' }, ...mockRoles.map(r => ({ label: r.name, value: r.id }))])
-const areaOptions = ref<{label: string, value: string}[]>([{ label: 'All Areas', value: '' }])
-const storeOptions = ref<{label: string, value: string}[]>([{ label: 'All Stores', value: '' }])
+const lookupStore = useLookupStore()
+const { roles, areas, stores } = storeToRefs(lookupStore)
+
+const roleOptions = computed(() => [{ label: 'All Roles', value: '' }, ...roles.value.map((r: any) => ({ label: r.name, value: r.id }))])
+const areaOptions = computed(() => [{ label: 'All Areas', value: '' }, ...areas.value.map((a: any) => ({ label: a.name || a.area_name || (a as any).areaName, value: a.id }))])
+const storeOptions = computed(() => [{ label: 'All Stores', value: '' }, ...stores.value.map((s: any) => ({ label: s.name, value: s.id }))])
+
 const dedicateOptions = [
   { label: 'All Dedicate', value: '' },
   { label: 'AV', value: 'AV' },
@@ -42,13 +44,13 @@ const dedicateOptions = [
 
 // Columns Configuration
 const columns: TableColumn[] = [
-  { key: 'employeeCode', label: 'EMP ID', type: 'text', sortable: true },
-  { key: 'fullName', label: 'Employee Name', type: 'text', sortable: true },
+  { key: 'employee_code', label: 'EMP ID', type: 'text', sortable: true },
+  { key: 'full_name', label: 'Employee Name', type: 'text', sortable: true },
   { key: 'role', label: 'Role', type: 'text', sortable: false },
   { key: 'areas', label: 'Area(s)', type: 'text', sortable: false },
   { key: 'store', label: 'Store', type: 'text', sortable: false },
   { key: 'dedicate', label: 'Dedicate', type: 'text', align: 'center' },
-  { key: 'status', label: 'Status', type: 'status', align: 'center' },
+  { key: 'is_active', label: 'Status', type: 'status', align: 'center' },
   { key: 'actions', label: 'Actions', type: 'actions', align: 'right' }
 ]
 
@@ -59,18 +61,7 @@ const selectedEmployee = ref<Employee | null>(null)
 
 onMounted(async () => {
   fetchEmployees()
-  const [areas, stores] = await Promise.all([
-    areaService.getAreas(),
-    storeService.getStores()
-  ])
-  areaOptions.value = [
-    { label: 'All Areas', value: '' },
-    ...areas.map(a => ({ label: a.name, value: a.id }))
-  ]
-  storeOptions.value = [
-    { label: 'All Stores', value: '' },
-    ...stores.map(s => ({ label: s.name, value: s.id }))
-  ]
+  await lookupStore.fetchLookups()
 })
 
 // Handlers
@@ -98,7 +89,7 @@ const handleEdit = (employee: Employee) => {
 const handleDelete = (employee: Employee) => {
   confirm.confirm({
     title: 'Delete Employee',
-    message: 'Are you sure you want to delete Employee ' + employee.fullName + '? This action cannot be undone.',
+    message: 'Are you sure you want to delete Employee ' + employee.full_name + '? This action cannot be undone.',
     confirmText: 'Delete',
     type: 'danger',
     onConfirm: async () => {
@@ -174,11 +165,14 @@ const getDedicateColor = (dedicate?: string) => {
       :data="employees"
       :loading="isLoading"
       :total="pagination.total"
-      :filters="filters"
+      :filters="(filters as any)"
       showAdd
       showExport
+      showEdit
+      showDelete
+      showView
       emptyTitle="No Employees Found"
-      @update:filters="filters = $event"
+      @update:filters="filters = ($event as any)"
       @update:pagination="fetchEmployees"
       @sort="handleSort"
       @refresh="fetchEmployees"
@@ -191,10 +185,10 @@ const getDedicateColor = (dedicate?: string) => {
       <!-- Custom Filters Slot -->
       <template #filters>
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 w-full lg:w-auto">
-          <AppSelect v-model="filters.roleId" :options="roleOptions" />
-          <AppSelect v-model="filters.areaId" :options="areaOptions" />
-          <AppSelect v-model="filters.storeId" :options="storeOptions" />
-          <AppSelect v-model="filters.dedicate" :options="dedicateOptions" />
+          <AppSelect v-model="(filters as any).roleId" :options="roleOptions" />
+          <AppSelect v-model="(filters as any).areaId" :options="areaOptions" />
+          <AppSelect v-model="(filters as any).storeId" :options="storeOptions" />
+          <AppSelect v-model="(filters as any).dedicate" :options="dedicateOptions" />
         </div>
       </template>
 
@@ -230,7 +224,8 @@ const getDedicateColor = (dedicate?: string) => {
 
       <!-- Custom Column: Store -->
       <template #store="{ row }">
-        <span class="text-gray-900 truncate max-w-[150px] block" :title="row.store?.name">
+        <div class="font-medium text-gray-900">{{ row.full_name }}</div>
+        <span class="text-gray-500 truncate max-w-[150px] block" :title="row.store?.name">
           {{ row.store?.name || '-' }}
         </span>
       </template>

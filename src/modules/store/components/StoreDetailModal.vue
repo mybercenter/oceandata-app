@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import AppModal from '@/shared/components/ui/AppModal.vue'
 import AppStatusBadge from '@/shared/components/AppStatusBadge.vue'
 import AppButton from '@/shared/components/AppButton.vue'
@@ -42,13 +42,14 @@ const formatDate = (isoString?: string) => {
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Name</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ store.name }}</dd>
-          </div>
-          <div class="grid grid-cols-3 gap-2">
-            <dt class="text-sm font-medium text-gray-500">Status</dt>
-            <dd class="text-sm text-gray-900 col-span-2">
-              <AppStatusBadge :status="store.status" />
-            </dd>
+            <span :class="[
+              'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+              store?.is_active 
+                ? 'bg-green-100 text-green-800'
+                : 'bg-gray-100 text-gray-800'
+            ]">
+              {{ store?.is_active ? 'Active' : 'Inactive' }}
+            </span>
           </div>
         </dl>
       </div>
@@ -61,7 +62,7 @@ const formatDate = (isoString?: string) => {
         <dl class="space-y-3">
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Area</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ store.area?.name || store.areaId }}</dd>
+              <p class="font-medium text-gray-900">{{ store?.area?.name || store?.area_id || '-' }}</p>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Address</dt>
@@ -95,11 +96,11 @@ const formatDate = (isoString?: string) => {
         <dl class="space-y-3">
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Created</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(store.createdAt) }}</dd>
+              <p class="text-sm text-gray-900">{{ store?.created_at ? new Date(store.created_at).toLocaleString() : '-' }}</p>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <dt class="text-sm font-medium text-gray-500">Updated</dt>
-            <dd class="text-sm text-gray-900 col-span-2">{{ formatDate(store.updatedAt) }}</dd>
+              <p class="text-sm text-gray-900">{{ store?.updated_at ? new Date(store.updated_at).toLocaleString() : '-' }}</p>
           </div>
         </dl>
       </div>
