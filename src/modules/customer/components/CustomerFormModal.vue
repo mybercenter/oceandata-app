@@ -49,7 +49,7 @@ const formData = ref({
   social_media: '',
   product: '',
   quantity: '' as number | '',
-  current_conversion: 'Potential' as Conversion,
+  current_conversion: '' as Conversion,
   customer_status: 'Inquiry' as CustomerStatus,
   is_active: 'true',
   employee_id: null as number | string | null
@@ -80,7 +80,7 @@ watch(() => props.isOpen, (isOpen) => {
         social_media: props.initialData.social_media || '',
         product: props.initialData.product || '',
         quantity: props.initialData.quantity || '',
-        current_conversion: props.initialData.current_conversion || 'Potential',
+        current_conversion: props.initialData.current_conversion || ('' as Conversion),
         customer_status: props.initialData.customer_status || 'Inquiry',
         is_active: props.initialData.is_active ? 'true' : 'false',
         employee_id: props.initialData.employee?.id || null
@@ -94,7 +94,7 @@ watch(() => props.isOpen, (isOpen) => {
         social_media: '',
         product: '',
         quantity: '',
-        current_conversion: 'Potential',
+        current_conversion: '' as Conversion,
         customer_status: 'Inquiry',
         is_active: 'true',
         employee_id: null

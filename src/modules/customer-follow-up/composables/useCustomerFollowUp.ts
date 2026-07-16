@@ -38,8 +38,12 @@ export const useCustomerFollowUp = () => {
 
   const fetchTemplates = async (areaId: string, dedicate: 'AV' | 'HA') => {
     try {
-      const { data: all } = await messageTemplateService.index()
-      templates.value = all.filter((t: any) => t.areaId === areaId && t.dedicate === dedicate && t.status === 'active')
+      const { data: all } = await messageTemplateService.index({
+        area_id: areaId,
+        dedicate: dedicate,
+        is_active: 1
+      })
+      templates.value = all
     } catch (error: any) {
       toast.error('Failed to load templates', error.message)
     }

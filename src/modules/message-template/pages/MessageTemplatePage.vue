@@ -180,7 +180,7 @@ const truncateText = (text?: string) => {
       showView
       emptyTitle="No Templates Found"
       @update:filters="filters = ($event as any)"
-      @update:pagination="fetchTemplates"
+      @update:pagination="(p) => { pagination.page = p.page; pagination.limit = p.limit; fetchTemplates(); }"
       @sort="handleSort"
       @refresh="fetchTemplates"
       @add="handleCreateNew"

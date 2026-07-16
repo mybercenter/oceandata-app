@@ -139,7 +139,7 @@ const handleRefresh = () => {
         :stores="stores"
         :employees="employees"
         @update:filters="filters = $event"
-        @pagination="fetchHistory"
+        @pagination="(p) => { pagination.page = p.page; pagination.limit = p.limit; fetchHistory(); }"
         @refresh="fetchHistory"
         @add="handleNew"
         @view="handleView"

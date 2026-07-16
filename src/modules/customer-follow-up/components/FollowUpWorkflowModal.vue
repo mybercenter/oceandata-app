@@ -70,6 +70,13 @@ watch(() => props.isOpen, async (val) => {
   }
 })
 
+const getAreaId = (customer: any) => {
+  if (!customer) return null
+  const emp = customer.employee
+  if (!emp) return null
+  return emp.store?.area_id || emp.areas?.[0]?.id || emp.area_id
+}
+
 // Watch customer selection change
 watch(selectedCustomerId, async (val) => {
   if (val && !props.customer) {
@@ -79,8 +86,9 @@ watch(selectedCustomerId, async (val) => {
         resolvedCustomer.value = customerDetails
         
         // Auto trigger templates if dedicate is already selected
-        if (dedicate.value && (customerDetails.employee as any)?.store?.area_id) {
-          fetchTemplates((customerDetails.employee as any).store.area_id, dedicate.value as 'AV'|'HA')
+        const areaId = getAreaId(customerDetails)
+        if (dedicate.value && areaId) {
+          fetchTemplates(areaId, dedicate.value as 'AV'|'HA')
         }
       }
     } catch (e) {
@@ -91,8 +99,9 @@ watch(selectedCustomerId, async (val) => {
 
 // Step 1: Dedicate Selection loads templates
 watch(dedicate, async (val) => {
-  if (val && (resolvedCustomer.value?.employee as any)?.store?.area_id) {
-    await fetchTemplates((resolvedCustomer.value!.employee as any).store.area_id, val as 'AV'|'HA')
+  const areaId = getAreaId(resolvedCustomer.value)
+  if (val && areaId) {
+    await fetchTemplates(areaId, val as 'AV'|'HA')
     selectedTemplate.value = ''
     editedMessage.value = ''
   }

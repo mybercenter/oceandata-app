@@ -18,7 +18,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:filters', val: any): void
-  (e: 'pagination'): void
+  (e: 'pagination', val: any): void
   (e: 'sort', key: string, order: 'asc'|'desc'): void
   (e: 'refresh'): void
   (e: 'add'): void
@@ -74,7 +74,7 @@ const formatDate = (isoString?: string) => {
     enableSelection
     emptyTitle="No Follow Ups Found"
     @update:filters="emit('update:filters', $event)"
-    @update:pagination="emit('pagination')"
+    @update:pagination="val => emit('pagination', val)"
     @sort="(key, order) => emit('sort', key, order)"
     @refresh="emit('refresh')"
     @add="emit('add')"

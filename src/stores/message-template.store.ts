@@ -42,7 +42,12 @@ export const useMessageTemplateStore = defineStore('messageTemplate', {
         await this.fetchItems()
         return true
       } catch (error: any) {
-        useToast().error('Error', error.response?.data?.message || 'Failed to create template')
+        let errorMsg = error.response?.data?.message || 'Failed to create template'
+        if (error.response?.data?.errors) {
+          const firstError = Object.values(error.response.data.errors).flat()[0]
+          if (firstError) errorMsg += `: ${firstError}`
+        }
+        useToast().error('Error', errorMsg)
         return false
       } finally {
         this.submitting = false
@@ -56,7 +61,12 @@ export const useMessageTemplateStore = defineStore('messageTemplate', {
         await this.fetchItems()
         return true
       } catch (error: any) {
-        useToast().error('Error', error.response?.data?.message || 'Failed to update template')
+        let errorMsg = error.response?.data?.message || 'Failed to update template'
+        if (error.response?.data?.errors) {
+          const firstError = Object.values(error.response.data.errors).flat()[0]
+          if (firstError) errorMsg += `: ${firstError}`
+        }
+        useToast().error('Error', errorMsg)
         return false
       } finally {
         this.submitting = false
