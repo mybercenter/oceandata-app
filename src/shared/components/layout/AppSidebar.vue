@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useSidebar } from '@/shared/composables/useSidebar'
-import { navigationConfig } from '@/app/navigation/navigation'
+import { navigationConfig, type NavigationItem } from '@/app/navigation/navigation'
 import AppSidebarItem from './AppSidebarItem.vue'
 import { useAuth } from '@/shared/composables/useAuth'
 
@@ -34,7 +34,7 @@ const filteredNavigation = computed(() => {
         return { ...item, children: filteredChildren }
       }
       return item
-    }).filter(Boolean)
+    }).filter(Boolean) as NavigationItem[]
 
     if (filteredItems.length === 0) return null
 
