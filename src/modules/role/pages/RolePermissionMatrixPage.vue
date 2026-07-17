@@ -14,18 +14,27 @@ import { CheckIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 const toast = useToast()
 
 const lookupStore = useLookupStore()
-const { roles, permissions } = storeToRefs(lookupStore)
+const { roles } = storeToRefs(lookupStore)
 
 const selectedRoleId = ref('')
 const isLoading = ref(true)
 const isSaving = ref(false)
 const assignedPermissions = ref<Set<string>>(new Set())
 const originalPermissions = ref<Set<string>>(new Set())
+const allPermissions = ref<any[]>([])
 
 onMounted(async () => {
   isLoading.value = true
   try {
     await lookupStore.fetchLookups()
+
+    // Fetch all permissions from API directly
+    const permRes = await permissionService.index({ per_page: 1000 })
+    let rawData = permRes.data as any
+    if (rawData && typeof rawData === 'object' && !Array.isArray(rawData) && Array.isArray(rawData.data)) {
+      rawData = rawData.data
+    }
+    allPermissions.value = Array.isArray(rawData) ? rawData : (rawData ? Object.values(rawData) : [])
 
     if (roles.value.length > 0) {
       selectedRoleId.value = (roles.value[0] as any).id
@@ -58,14 +67,14 @@ const roleOptions = computed(() => {
 // Build Matrix Structure
 const modules = computed(() => {
   const mods = new Set<string>()
-  permissions.value.forEach((p: any) => mods.add(p.module))
+  allPermissions.value.forEach((p: any) => mods.add(p.module))
   return Array.from(mods).sort()
 })
 
 const actions = ['View', 'Create', 'Update', 'Delete', 'Export', 'Approve']
 
 const getPermissionForCell = (mod: string, act: string) => {
-  return permissions.value.find((p: any) => p.module === mod && p.action === act) as any
+  return allPermissions.value.find((p: any) => p.module === mod && p.action === act) as any
 }
 
 const togglePermission = (permId: string) => {
@@ -77,14 +86,14 @@ const togglePermission = (permId: string) => {
 }
 
 const selectAllInModule = (mod: string) => {
-  const modPerms = permissions.value.filter((p: any) => p.module === mod)
-  const allAssigned = modPerms.every((p: any) => assignedPermissions.value.has(p.id))
+  const modPerms = allPermissions.value.filter((p: any) => p.module === mod)
+  const allAssigned = modPerms.every((p: any) => assignedPermissions.value.has(String(p.id)))
   
   modPerms.forEach((p: any) => {
     if (allAssigned) {
-      assignedPermissions.value.delete(p.id)
+      assignedPermissions.value.delete(String(p.id))
     } else {
-      assignedPermissions.value.add(p.id)
+      assignedPermissions.value.add(String(p.id))
     }
   })
 }
@@ -141,7 +150,7 @@ const hasChanges = computed(() => {
           </div>
           <div class="text-center">
             <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Permissions</p>
-            <p class="text-xl font-bold text-gray-900">{{ permissions.length }}</p>
+            <p class="text-xl font-bold text-gray-900">{{ allPermissions.length }}</p>
           </div>
           <div class="text-center bg-primary-50 px-4 py-2 rounded-lg border border-primary-100">
             <p class="text-xs text-primary-600 uppercase tracking-wider font-semibold">Assigned</p>
@@ -194,8 +203,8 @@ const hasChanges = computed(() => {
                       <input 
                         type="checkbox"
                         class="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2 cursor-pointer transition-colors"
-                        :checked="assignedPermissions.has(getPermissionForCell(mod, act)!.id)"
-                        @change="togglePermission(getPermissionForCell(mod, act)!.id)"
+                        :checked="assignedPermissions.has(String(getPermissionForCell(mod, act)!.id))"
+                        @change="togglePermission(String(getPermissionForCell(mod, act)!.id))"
                       />
                     </div>
                   </template>

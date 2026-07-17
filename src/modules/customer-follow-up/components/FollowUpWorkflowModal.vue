@@ -47,6 +47,8 @@ const originalMessage = ref('')
 const editedMessage = ref('')
 const followUpDate = ref(new Date().toISOString().split('T')[0])
 const notes = ref('')
+const conversion = ref('Potential')
+const customerStatus = ref('Inquiry')
 const formError = ref('')
 // Watch for Modal Open
 watch(() => props.isOpen, async (val) => {
@@ -63,9 +65,13 @@ watch(() => props.isOpen, async (val) => {
     if (props.customer) {
       resolvedCustomer.value = props.customer
       selectedCustomerId.value = props.customer.id
+      conversion.value = props.customer.current_conversion || ''
+      customerStatus.value = props.customer.customer_status || ''
     } else {
       resolvedCustomer.value = null
       selectedCustomerId.value = ''
+      conversion.value = ''
+      customerStatus.value = ''
     }
   }
 })
@@ -84,6 +90,8 @@ watch(selectedCustomerId, async (val) => {
       const customerDetails = await customerService.show(val)
       if (customerDetails) {
         resolvedCustomer.value = customerDetails
+        conversion.value = customerDetails.current_conversion || ''
+        customerStatus.value = customerDetails.customer_status || ''
         
         // Auto trigger templates if dedicate is already selected
         const areaId = getAreaId(customerDetails)
@@ -181,8 +189,8 @@ const handleSave = async () => {
     whatsappMessage: editedMessage.value,
     followUpDate: followUpDate.value,
     notes: notes.value,
-    conversion: resolvedCustomer.value.current_conversion,
-    customerStatus: resolvedCustomer.value.customer_status
+    conversion: conversion.value,
+    customerStatus: customerStatus.value
   })
 
   if (success) {
@@ -334,8 +342,29 @@ const handleSave = async () => {
         <div v-show="currentStep === 5" class="max-w-3xl mx-auto space-y-6">
           <h2 class="text-xl font-bold text-gray-900 border-b pb-2">Record Follow Up Result</h2>
           
-          <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <AppInput type="date" label="Follow Up Date" v-model="followUpDate" required />
+            <div class="space-y-4">
+              <AppSelect 
+                label="Conversion Status" 
+                v-model="conversion"
+                :options="[
+                  { label: '-- Belum ada conversion --', value: '' },
+                  { label: 'Potential', value: 'Potential' },
+                  { label: 'Prospect', value: 'Prospect' },
+                  { label: 'Hot Prospect', value: 'Hot Prospect' }
+                ]"
+              />
+              <AppSelect 
+                label="Customer Status" 
+                v-model="customerStatus"
+                :options="[
+                  { label: '-- Belum ada status --', value: '' },
+                  { label: 'Inquiry', value: 'Inquiry' },
+                  { label: 'Purchased', value: 'Purchased' }
+                ]"
+              />
+            </div>
           </div>
           
           <EvidenceUploader />

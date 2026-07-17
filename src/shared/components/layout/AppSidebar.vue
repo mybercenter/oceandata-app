@@ -1,9 +1,49 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useSidebar } from '@/shared/composables/useSidebar'
 import { navigationConfig } from '@/app/navigation/navigation'
 import AppSidebarItem from './AppSidebarItem.vue'
+import { useAuth } from '@/shared/composables/useAuth'
 
 const { isExpanded, isMobileDrawerOpen, setMobileDrawer } = useSidebar()
+const { employee, user, hasAnyPermission } = useAuth()
+
+const userRole = computed(() => employee.value?.role?.name || user.value?.role?.name || '')
+const isSuperAdmin = computed(() => userRole.value === 'Administrator' || userRole.value === 'Super Admin')
+
+const filteredNavigation = computed(() => {
+  return navigationConfig.map(group => {
+    // Filter items in the group based on permissions
+    const filteredItems = group.items.filter(item => {
+      if (item.permissions && item.permissions.length > 0) {
+        if (!isSuperAdmin.value && !hasAnyPermission(item.permissions)) return false
+      }
+      return true
+    }).map(item => {
+      // Also filter children if they exist
+      if (item.children) {
+        const filteredChildren = item.children.filter(child => {
+          if (child.permissions && child.permissions.length > 0) {
+            if (!isSuperAdmin.value && !hasAnyPermission(child.permissions)) return false
+          }
+          return true
+        })
+        
+        if (filteredChildren.length === 0 && !isSuperAdmin.value) return null
+        
+        return { ...item, children: filteredChildren }
+      }
+      return item
+    }).filter(Boolean)
+
+    if (filteredItems.length === 0) return null
+
+    return {
+      ...group,
+      items: filteredItems
+    }
+  }).filter(Boolean)
+})
 </script>
 
 <template>
@@ -46,22 +86,24 @@ const { isExpanded, isMobileDrawerOpen, setMobileDrawer } = useSidebar()
     <!-- Sidebar Content -->
     <div class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-in-out">
       <nav class="mt-4 px-3 lg:mt-6 pb-20">
-        <div v-for="(group, groupIndex) in navigationConfig" :key="groupIndex" class="mb-6">
-          <h3 
-            class="mb-2 ml-4 text-xs font-semibold text-gray-400 uppercase tracking-wider transition-opacity duration-300"
-            :class="!isExpanded ? 'opacity-0 hidden' : 'opacity-100'"
-          >
-            {{ group.name }}
-          </h3>
+        <template v-for="(group, groupIndex) in filteredNavigation" :key="groupIndex">
+          <div v-if="group" class="mb-6">
+            <h3 
+              class="mb-2 ml-4 text-xs font-semibold text-gray-400 uppercase tracking-wider transition-opacity duration-300"
+              :class="!isExpanded ? 'opacity-0 hidden' : 'opacity-100'"
+            >
+              {{ group.name }}
+            </h3>
 
-          <ul class="mb-4 flex flex-col gap-1.5">
-            <AppSidebarItem
-              v-for="(item, itemIndex) in group.items"
-              :key="itemIndex"
-              :item="item"
-            />
-          </ul>
-        </div>
+            <ul class="mb-4 flex flex-col gap-1.5">
+              <AppSidebarItem
+                v-for="(item, itemIndex) in group.items"
+                :key="itemIndex"
+                :item="item"
+              />
+            </ul>
+          </div>
+        </template>
       </nav>
     </div>
   </aside>

@@ -4,10 +4,12 @@ export interface NavigationItem {
   icon?: any // Heroicon component
   children?: NavigationItem[]
   permissions?: string[] // Future-proofing
+  roles?: string[] // Roles allowed to see this menu
 }
 
 export interface NavigationGroup {
   name: string
+  roles?: string[] // Roles allowed to see this group
   items: NavigationItem[]
 }
 
@@ -34,6 +36,7 @@ export const navigationConfig: NavigationGroup[] = [
         title: 'Dashboard',
         route: '/dashboard',
         icon: HomeIcon,
+        permissions: ['dashboard.view']
       }
     ]
   },
@@ -44,16 +47,19 @@ export const navigationConfig: NavigationGroup[] = [
         title: 'Area',
         route: '/area',
         icon: MapPinIcon,
+        permissions: ['area.view']
       },
       {
         title: 'Store',
         route: '/store',
         icon: BuildingStorefrontIcon,
+        permissions: ['store.view']
       },
       {
         title: 'Employee',
         route: '/employee',
         icon: UserGroupIcon,
+        permissions: ['employee.view']
       },
       {
         title: 'User',
@@ -63,17 +69,20 @@ export const navigationConfig: NavigationGroup[] = [
           {
             title: 'Users',
             route: '/user/users',
-            icon: UserCircleIcon
+            icon: UserCircleIcon,
+            permissions: ['user.view']
           },
           {
             title: 'Roles',
             route: '/user/roles',
-            icon: ShieldCheckIcon
+            icon: ShieldCheckIcon,
+            permissions: ['role.view']
           },
           {
             title: 'Permissions',
             route: '/user/permissions',
-            icon: ShieldCheckIcon
+            icon: ShieldCheckIcon,
+            permissions: ['permission.view']
           }
         ]
       },
@@ -81,6 +90,7 @@ export const navigationConfig: NavigationGroup[] = [
         title: 'Message Template',
         route: '/message-template',
         icon: ChatBubbleLeftRightIcon,
+        permissions: ['message_template.view']
       }
     ]
   },
@@ -91,11 +101,13 @@ export const navigationConfig: NavigationGroup[] = [
         title: 'Customers',
         route: '/operations/customers',
         icon: UserCircleIcon,
+        permissions: ['customer.view']
       },
       {
         title: 'Follow Up',
         route: '/follow-up',
         icon: PhoneArrowUpRightIcon,
+        permissions: ['follow_up.view']
       }
     ]
   },
@@ -106,16 +118,19 @@ export const navigationConfig: NavigationGroup[] = [
         title: 'Dashboard Report',
         route: '/report/dashboard',
         icon: ChartPieIcon,
+        permissions: ['report_dashboard.view']
       },
       {
         title: 'Customer Report',
         route: '/report/customer',
         icon: ChartBarIcon,
+        permissions: ['report_customer.view']
       },
       {
         title: 'Follow Up Report',
         route: '/report/follow-up',
         icon: ChartBarIcon,
+        permissions: ['report_follow_up.view']
       }
     ]
   },
@@ -126,6 +141,7 @@ export const navigationConfig: NavigationGroup[] = [
         title: 'Settings',
         route: '/settings',
         icon: Cog6ToothIcon,
+        permissions: ['setting.view']
       }
     ]
   }

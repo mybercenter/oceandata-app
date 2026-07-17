@@ -160,7 +160,7 @@ const handleRefresh = () => {
       :is-open="isWorkflowOpen"
       :customer="null"
       @close="isWorkflowOpen = false"
-      @success="fetchHistory"
+      @success="() => fetchHistory()"
     />
 
     <FollowUpDetailModal 

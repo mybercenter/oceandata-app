@@ -20,6 +20,8 @@ import { storeToRefs } from 'pinia'
 
 import { PhoneArrowUpRightIcon } from '@heroicons/vue/24/outline'
 
+import { useAuth } from '@/shared/composables/useAuth'
+
 const {
   customers,
   metrics,
@@ -34,6 +36,8 @@ const {
   deleteCustomer,
   deleteSelected
 } = useCustomer()
+
+const { hasPermission } = useAuth()
 
 const confirm = useConfirmDialog()
 
@@ -164,7 +168,8 @@ watch(filters, () => {
   fetchCustomers()
 }, { deep: true })
 
-const formatConversionColor = (conversion: string) => {
+const formatConversionColor = (conversion: string | null) => {
+  if (!conversion) return 'text-gray-500 bg-gray-50 border-gray-200'
   switch (conversion) {
     case 'Hot Prospect': return 'text-red-700 bg-red-100 border-red-200'
     case 'Prospect': return 'text-orange-700 bg-orange-100 border-orange-200'
@@ -195,8 +200,10 @@ const formatDate = (isoString?: string) => {
       :loading="isLoading"
       :total="pagination.total"
       :filters="filters"
-      showAdd
-      showExport
+      :showAdd="hasPermission('customer.create')"
+      :showEdit="hasPermission('customer.update')"
+      :showDelete="hasPermission('customer.delete')"
+      :showExport="hasPermission('customer.export')"
       enableSelection
       emptyTitle="No Customers Found"
       @update:filters="filters = { ...filters, ...$event }"
@@ -244,7 +251,7 @@ const formatDate = (isoString?: string) => {
 
       <template #current_conversion="{ row }">
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border" :class="formatConversionColor(row.current_conversion)">
-          {{ row.current_conversion }}
+          {{ row.current_conversion || 'Belum Ada' }}
         </span>
       </template>
 

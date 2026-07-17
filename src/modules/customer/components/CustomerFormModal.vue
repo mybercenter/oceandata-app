@@ -57,6 +57,12 @@ const formData = ref({
 
 const isEditMode = computed(() => !!props.initialData)
 
+import { useAuth } from '@/shared/composables/useAuth'
+
+const { employee, user } = useAuth()
+const userRoleName = computed(() => employee.value?.role?.name || user.value?.role?.name || '')
+const isSuperAdmin = computed(() => userRoleName.value === 'Administrator' || userRoleName.value === 'Super Admin')
+
 // Initial employee option for edit mode
 const initialEmployeeOption = computed(() => {
   if (props.initialData?.employee) {

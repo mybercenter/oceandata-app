@@ -24,8 +24,6 @@ class CustomerFollowUpService {
     if (!data.dedicate) throw new Error('Dedicate is required')
     if (!data.templateUsed) throw new Error('Template is required')
     if (!data.followUpDate) throw new Error('Follow Up Date is required')
-    if (!(data as any).conversion) throw new Error('Conversion is required')
-    if (!(data as any).customerStatus) throw new Error('Customer Status is required')
 
     // Fetch customer to attach and also to update their current conversion
     const customer = await customerService.show(data.customerId)
@@ -50,11 +48,16 @@ class CustomerFollowUpService {
     this.followUps.unshift(newFollowUp)
 
     // Automatically update the main customer record to reflect the new conversion/status
-    await customerService.update(data.customerId, {
-      current_conversion: (data as any).conversion,
-      customer_status: (data as any).customerStatus,
-      latest_follow_up: { follow_up_date: data.followUpDate } as any
-    })
+    const updateData: any = {
+      latest_follow_up: { follow_up_date: data.followUpDate }
+    }
+    if ((data as any).conversion) {
+      updateData.current_conversion = (data as any).conversion
+    }
+    if ((data as any).customerStatus) {
+      updateData.customer_status = (data as any).customerStatus
+    }
+    await customerService.update(data.customerId, updateData)
 
     return { ...newFollowUp }
   }
