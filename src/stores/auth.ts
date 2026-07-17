@@ -82,10 +82,12 @@ export const useAuthStore = defineStore('auth', {
     },
     
     setAuthData(data: any) {
-      this.user = data.user
-      this.employee = data.employee
-      this.permissions = data.permissions || []
-      this.areas = data.areas || []
+      const userData = data.user || data
+      
+      this.user = userData
+      this.employee = userData.employee
+      this.permissions = userData.permissions || []
+      this.areas = userData.areas || []
       
       if (data.token) {
         this.token = data.token

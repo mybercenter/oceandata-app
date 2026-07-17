@@ -22,19 +22,19 @@ const handleLogout = async () => {
     <template #trigger="{ isOpen }">
       <button class="flex items-center gap-3 p-1 rounded-full hover:bg-gray-100 transition-colors focus:outline-none" :class="{ 'bg-gray-100': isOpen }">
         <div class="w-9 h-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold border border-primary-200">
-          {{ user.name?.charAt(0).toUpperCase() || 'U' }}
+          {{ (user.employee?.full_name || user.username || 'U').charAt(0).toUpperCase() }}
         </div>
         <div class="hidden sm:block text-left mr-2">
-          <p class="text-sm font-semibold text-gray-900 leading-tight">{{ user.name }}</p>
-          <p class="text-xs text-gray-500">{{ user.username || 'User' }}</p>
+          <p class="text-sm font-semibold text-gray-900 leading-tight">{{ user.employee?.full_name || user.username }}</p>
+          <p class="text-xs text-gray-500">{{ user.role?.name || 'User' }}</p>
         </div>
       </button>
     </template>
 
     <template #default="{ close }">
       <div class="px-4 py-3 border-b border-gray-100">
-        <p class="text-sm font-medium text-gray-900">{{ user.name }}</p>
-        <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
+        <p class="text-sm font-medium text-gray-900">{{ user.employee?.full_name || user.username }}</p>
+        <p class="text-xs text-gray-500 truncate">{{ user.username }}</p>
       </div>
 
       <div class="py-1">
@@ -51,7 +51,7 @@ const handleLogout = async () => {
       <div class="py-1 border-t border-gray-100">
         <a href="#" @click.prevent="handleLogout" class="group flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
           <ArrowRightOnRectangleIcon class="mr-3 h-5 w-5 text-red-500" />
-          Sign out
+          Logout
         </a>
       </div>
     </template>
