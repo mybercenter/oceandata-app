@@ -48,7 +48,6 @@ const editedMessage = ref('')
 const followUpDate = ref(new Date().toISOString().split('T')[0])
 const notes = ref('')
 const conversion = ref('Potential')
-const customerStatus = ref('Inquiry')
 const formError = ref('')
 // Watch for Modal Open
 watch(() => props.isOpen, async (val) => {
@@ -66,12 +65,10 @@ watch(() => props.isOpen, async (val) => {
       resolvedCustomer.value = props.customer
       selectedCustomerId.value = props.customer.id
       conversion.value = props.customer.current_conversion || ''
-      customerStatus.value = props.customer.customer_status || ''
     } else {
       resolvedCustomer.value = null
       selectedCustomerId.value = ''
       conversion.value = ''
-      customerStatus.value = ''
     }
   }
 })
@@ -91,7 +88,6 @@ watch(selectedCustomerId, async (val) => {
       if (customerDetails) {
         resolvedCustomer.value = customerDetails
         conversion.value = customerDetails.current_conversion || ''
-        customerStatus.value = customerDetails.customer_status || ''
         
         // Auto trigger templates if dedicate is already selected
         const areaId = getAreaId(customerDetails)
@@ -189,8 +185,7 @@ const handleSave = async () => {
     whatsappMessage: editedMessage.value,
     followUpDate: followUpDate.value,
     notes: notes.value,
-    conversion: conversion.value,
-    customerStatus: customerStatus.value
+    conversion: conversion.value
   })
 
   if (success) {
@@ -353,15 +348,6 @@ const handleSave = async () => {
                   { label: 'Potential', value: 'Potential' },
                   { label: 'Prospect', value: 'Prospect' },
                   { label: 'Hot Prospect', value: 'Hot Prospect' }
-                ]"
-              />
-              <AppSelect 
-                label="Customer Status" 
-                v-model="customerStatus"
-                :options="[
-                  { label: '-- Belum ada status --', value: '' },
-                  { label: 'Inquiry', value: 'Inquiry' },
-                  { label: 'Purchased', value: 'Purchased' }
                 ]"
               />
             </div>

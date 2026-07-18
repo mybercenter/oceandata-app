@@ -3,6 +3,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
 import AppSelect from '@/shared/components/AppSelect.vue'
+import AppInput from '@/shared/components/AppInput.vue'
 import AppStatusBadge from '@/shared/components/AppStatusBadge.vue'
 import type { TableColumn } from '@/shared/components/table/table.types'
 
@@ -34,7 +35,8 @@ const {
   createCustomer,
   updateCustomer,
   deleteCustomer,
-  deleteSelected
+  deleteSelected,
+  exportCustomers
 } = useCustomer()
 
 const { hasPermission } = useAuth()
@@ -138,6 +140,10 @@ const handleDeleteSelected = (ids: (string|number)[]) => {
 
 const formErrors = ref<Record<string, string[]>>({})
 
+const handleExport = async () => {
+  await exportCustomers()
+}
+
 const handleFormSubmit = async (data: any, createAnother: boolean) => {
   let success = false
   formErrors.value = {}
@@ -203,7 +209,7 @@ const formatDate = (isoString?: string) => {
       :showAdd="hasPermission('customer.create')"
       :showEdit="hasPermission('customer.update')"
       :showDelete="hasPermission('customer.delete')"
-      :showExport="hasPermission('customer.export')"
+      :showExport="hasPermission('customer.export') || hasPermission('customer.view')"
       enableSelection
       emptyTitle="No Customers Found"
       @update:filters="filters = { ...filters, ...$event }"
@@ -215,14 +221,17 @@ const formatDate = (isoString?: string) => {
       @edit="handleEdit"
       @delete="handleDelete"
       @delete-selected="handleDeleteSelected"
+      @export="handleExport"
     >
       <template #filters>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 w-full">
           <AppSelect v-model="filters.area_id" :options="areaOptions" />
           <AppSelect v-model="filters.store_id" :options="storeOptions" />
           <AppSelect v-model="filters.employee_id" :options="employeeOptions" />
           <AppSelect v-model="filters.customer_status" :options="statusOptions" />
           <AppSelect v-model="filters.current_conversion" :options="conversionOptions" />
+          <AppInput type="date" v-model="filters.customer_date_from" title="From Date" />
+          <AppInput type="date" v-model="filters.customer_date_to" title="To Date" />
         </div>
       </template>
 

@@ -83,6 +83,10 @@ export const useCustomer = () => {
     return await store.updateConversion(id, conversion)
   }
 
+  const exportCustomers = async () => {
+    return await store.exportCustomers()
+  }
+
   return {
     customers,
     customer,
@@ -99,6 +103,7 @@ export const useCustomer = () => {
     deleteCustomer,
     deleteSelected,
     updateStatus,
-    updateConversion
+    updateConversion,
+    exportCustomers
   }
 }

@@ -21,7 +21,9 @@ export const useCustomerStore = defineStore('customer', {
       store_id: '',
       employee_id: '',
       customer_status: '',
-      current_conversion: ''
+      current_conversion: '',
+      customer_date_from: '',
+      customer_date_to: ''
     },
     sort: {
       key: 'customer_date',
@@ -42,6 +44,8 @@ export const useCustomerStore = defineStore('customer', {
           employee_id: this.filters.employee_id || undefined,
           customer_status: this.filters.customer_status || undefined,
           current_conversion: this.filters.current_conversion || undefined,
+          customer_date_from: this.filters.customer_date_from || undefined,
+          customer_date_to: this.filters.customer_date_to || undefined,
           sort_by: this.sort.key,
           sort_dir: this.sort.order
         })
@@ -124,6 +128,25 @@ export const useCustomerStore = defineStore('customer', {
       } catch (error: any) {
         useToast().error('Error', error.response?.data?.message || 'Failed to update conversion')
         return false
+      }
+    },
+    async exportCustomers() {
+      try {
+        await customerService.export({
+          search: this.filters.search,
+          is_active: this.filters.status === 'active' ? 1 : (this.filters.status === 'inactive' ? 0 : undefined),
+          area_id: this.filters.area_id || undefined,
+          store_id: this.filters.store_id || undefined,
+          employee_id: this.filters.employee_id || undefined,
+          customer_status: this.filters.customer_status || undefined,
+          current_conversion: this.filters.current_conversion || undefined,
+          customer_date_from: this.filters.customer_date_from || undefined,
+          customer_date_to: this.filters.customer_date_to || undefined,
+          sort_by: this.sort.key,
+          sort_dir: this.sort.order
+        })
+      } catch (error: any) {
+        useToast().error('Error', 'Failed to export customers')
       }
     },
     clearState() {

@@ -1,80 +1,52 @@
+import http from '@/shared/services/http'
 import type { CustomerFollowUp } from '../types/customer-follow-up.types'
-import { mockCustomerFollowUps } from '../mock/customer-follow-up.mock'
 import { customerService } from '../../customer/services/customer.service'
 
 class CustomerFollowUpService {
-  private followUps: CustomerFollowUp[] = [...mockCustomerFollowUps]
-
-  private delay(ms = 600): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
-  }
-
   async getFollowUps(customerId?: string | number): Promise<CustomerFollowUp[]> {
-    await this.delay()
-    if (customerId) {
-      return this.followUps.filter(f => f.customerId === customerId)
+    const url = customerId ? `/customers/${customerId}/follow-ups` : `/follow-ups`
+    try {
+      const { data } = await http.get(url, { params: { per_page: 500 } })
+      const items = data.data?.data || data.data || []
+      return items.map((item: any) => this.mapToCamelCase(item))
+    } catch (e) {
+      console.error(e)
+      return []
     }
-    return [...this.followUps]
   }
 
-  async createFollowUp(data: Partial<CustomerFollowUp>): Promise<CustomerFollowUp> {
-    await this.delay(1000)
-    
+  async createFollowUp(data: any): Promise<CustomerFollowUp> {
     if (!data.customerId) throw new Error('Customer ID is required')
     if (!data.dedicate) throw new Error('Dedicate is required')
     if (!data.templateUsed) throw new Error('Template is required')
     if (!data.followUpDate) throw new Error('Follow Up Date is required')
 
-    // Fetch customer to attach and also to update their current conversion
-    const customer = await customerService.show(data.customerId)
+    const payload = {
+      dedicate: data.dedicate,
+      template_used: data.templateUsed,
+      whatsapp_message: data.whatsappMessage,
+      follow_up_date: data.followUpDate,
+      notes: data.notes,
+      conversion: data.conversion
+    }
 
-    const newFollowUp: CustomerFollowUp = {
-      ...data,
-      id: 'fu' + Date.now(),
-      customerId: data.customerId,
-      customer,
-      employeeId: customer.employee_id,
-      employee: customer.employee,
-      dedicate: data.dedicate as 'AV' | 'HA',
-      templateUsed: data.templateUsed,
-      whatsappMessage: data.whatsappMessage || '',
-      followUpDate: data.followUpDate,
-      conversion: (data as any).conversion,
-      customerStatus: (data as any).customerStatus,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    } as any
+    const { data: responseData } = await http.post(`/customers/${data.customerId}/follow-ups`, payload)
     
-    this.followUps.unshift(newFollowUp)
-
-    // Automatically update the main customer record to reflect the new conversion/status
-    const updateData: any = {
-      latest_follow_up: { follow_up_date: data.followUpDate }
-    }
-    if ((data as any).conversion) {
-      updateData.current_conversion = (data as any).conversion
-    }
-    if ((data as any).customerStatus) {
-      updateData.customer_status = (data as any).customerStatus
-    }
-    await customerService.update(data.customerId, updateData)
-
-    return { ...newFollowUp }
+    // Automatically trigger customer fetch refresh if necessary, but backend updates it
+    return this.mapToCamelCase(responseData.data)
   }
 
   async updateFollowUp(id: string, data: Partial<CustomerFollowUp>): Promise<CustomerFollowUp> {
-    await this.delay(400)
-    const index = this.followUps.findIndex(f => f.id === id)
-    if (index === -1) throw new Error('Follow up not found')
-    this.followUps[index] = { ...this.followUps[index], ...data, updatedAt: new Date().toISOString() }
-    return { ...this.followUps[index] }
+    const payload = {
+      _method: 'PUT',
+      notes: data.notes
+    }
+    const { data: responseData } = await http.post(`/follow-ups/${id}`, payload)
+    return this.mapToCamelCase(responseData.data)
   }
 
   async openWhatsapp(phone: string, message: string): Promise<boolean> {
-    await this.delay(300)
-    // Clean phone number (remove +, -, spaces, etc.)
     const cleanPhone = phone.replace(/\D/g, '')
-    // Format to international format if starts with 0
     let formattedPhone = cleanPhone
     if (formattedPhone.startsWith('0')) {
       formattedPhone = '62' + formattedPhone.substring(1)
@@ -83,6 +55,19 @@ class CustomerFollowUpService {
     const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`
     window.open(url, '_blank', 'noopener,noreferrer')
     return true
+  }
+
+  private mapToCamelCase(item: any): CustomerFollowUp {
+    return {
+      ...item,
+      customerId: item.customer_id,
+      followUpDate: item.follow_up_date,
+      templateUsed: item.template_used,
+      whatsappMessage: item.whatsapp_message,
+      whatsappUrl: item.whatsapp_url,
+      evidenceUrl: item.evidence_url,
+      createdAt: item.created_at
+    } as any
   }
 }
 
