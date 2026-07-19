@@ -173,7 +173,7 @@ const getDedicateColor = (dedicate?: string) => {
       showView
       emptyTitle="No Employees Found"
       @update:filters="filters = ($event as any)"
-      @update:pagination="(p) => { pagination.value.page = p.page; pagination.value.limit = p.limit; fetchEmployees() }"
+      @update:pagination="(p) => { pagination.page = p.page; pagination.limit = p.limit; fetchEmployees() }"
       @sort="handleSort"
       @refresh="fetchEmployees"
       @add="handleCreateNew"

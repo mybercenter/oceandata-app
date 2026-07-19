@@ -132,7 +132,7 @@ watch(filters, () => {
       showView
       emptyTitle="No Stores Found"
       @update:filters="filters = ($event as any)"
-      @update:pagination="(p) => { pagination.value.page = p.page; pagination.value.limit = p.limit; fetchStores() }"
+      @update:pagination="(p) => { pagination.page = p.page; pagination.limit = p.limit; fetchStores() }"
       @sort="handleSort"
       @refresh="fetchStores"
       @add="handleCreateNew"

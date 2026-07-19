@@ -144,7 +144,7 @@ watch(filters, () => {
       showView
       emptyTitle="No Areas Found"
       @update:filters="filters = ($event as any)"
-      @update:pagination="(p) => { pagination.value.page = p.page; pagination.value.limit = p.limit; fetchAreas() }"
+      @update:pagination="(p) => { pagination.page = p.page; pagination.limit = p.limit; fetchAreas() }"
       @sort="handleSort"
       @refresh="fetchAreas"
       @add="handleCreateNew"

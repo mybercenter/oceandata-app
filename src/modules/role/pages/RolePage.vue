@@ -145,7 +145,7 @@ watch(filters, () => {
       showView
       emptyTitle="No Roles Found"
       @update:filters="filters = ($event as any)"
-      @update:pagination="(p) => { pagination.value.page = p.page; pagination.value.limit = p.limit; fetchRoles() }"
+      @update:pagination="(p) => { pagination.page = p.page; pagination.limit = p.limit; fetchRoles() }"
       @sort="handleSort"
       @refresh="fetchRoles"
       @add="handleCreateNew"
