@@ -15,6 +15,11 @@ const handleLogout = async () => {
   await logout()
   router.push('/auth/login')
 }
+
+const handleGoToProfile = (close: () => void) => {
+  close()
+  router.push({ name: 'profile' })
+}
 </script>
 
 <template>
@@ -38,11 +43,11 @@ const handleLogout = async () => {
       </div>
 
       <div class="py-1">
-        <a href="#" @click.prevent="close" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-600 transition-colors">
+        <a href="#" @click.prevent="handleGoToProfile(close)" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-600 transition-colors">
           <UserCircleIcon class="mr-3 h-5 w-5 text-gray-400 group-hover:text-primary-600" />
           My Profile
         </a>
-        <a href="#" @click.prevent="close" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-600 transition-colors">
+        <a href="#" @click.prevent="handleGoToProfile(close)" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-600 transition-colors">
           <Cog8ToothIcon class="mr-3 h-5 w-5 text-gray-400 group-hover:text-primary-600" />
           Account Settings
         </a>

@@ -119,6 +119,12 @@ const router = createRouter({
           meta: { title: 'Area Performance', breadcrumbs: [{ title: 'Reports' }, { title: 'Area Performance' }] }
         },
         {
+          path: 'profile',
+          name: 'profile',
+          component: () => import('@/modules/profile/pages/ProfilePage.vue'),
+          meta: { title: 'My Profile', breadcrumbs: [{ title: 'Profile' }] }
+        },
+        {
           path: 'settings',
           name: 'settings',
           component: () => import('@/modules/settings/pages/SettingsPage.vue'),
