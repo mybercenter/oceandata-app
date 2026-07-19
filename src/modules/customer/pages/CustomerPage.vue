@@ -213,7 +213,7 @@ const formatDate = (isoString?: string) => {
       enableSelection
       emptyTitle="No Customers Found"
       @update:filters="filters = { ...filters, ...$event }"
-      @update:pagination="fetchCustomers"
+      @update:pagination="(p) => { pagination.value.page = p.page; pagination.value.limit = p.limit; fetchCustomers() }"
       @sort="handleSort"
       @refresh="fetchCustomers"
       @add="handleCreateNew"

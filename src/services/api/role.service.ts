@@ -8,7 +8,7 @@ class RoleApiService extends BaseApiService {
   }
 
   async syncPermissions(id: string | number, permissionIds: (string | number)[]) {
-    const response = await http.put(`${this.endpoint}/${id}/permissions`, { permissions: permissionIds })
+    const response = await http.put(`${this.endpoint}/${id}/permissions`, { permission_ids: permissionIds })
     return response.data.data
   }
 

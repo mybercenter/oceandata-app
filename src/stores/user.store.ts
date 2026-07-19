@@ -21,8 +21,8 @@ export const useUserStore = defineStore('user', {
           per_page: this.pagination.limit,
           search: this.filters.search,
           is_active: this.filters.status === 'active' ? 1 : (this.filters.status === 'inactive' ? 0 : undefined),
-          sort_by: this.sort.key,
-          sort_dir: this.sort.order
+          sort: this.sort.key,
+          order: this.sort.order
         })
         this.items = data
         this.pagination.total = meta?.total || data.length

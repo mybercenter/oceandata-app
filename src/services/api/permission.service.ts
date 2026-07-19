@@ -22,7 +22,7 @@ class PermissionApiService extends BaseApiService {
   }
   
   async updateRolePermissions(roleId: string | number, permissionIds: string[]) {
-    const response = await http.post(`/roles/${roleId}/permissions`, { permissions: permissionIds })
+    const response = await http.put(`/roles/${roleId}/permissions`, { permission_ids: permissionIds })
     return response.data.data
   }
 }

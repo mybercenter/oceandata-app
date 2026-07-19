@@ -23,8 +23,8 @@ export const useMessageTemplateStore = defineStore('messageTemplate', {
           is_active: this.filters.status === 'active' ? 1 : (this.filters.status === 'inactive' ? 0 : undefined),
           area_id: this.filters.area_id || undefined,
           dedicate: this.filters.dedicate || undefined,
-          sort_by: this.sort.key,
-          sort_dir: this.sort.order
+          sort: this.sort.key,
+          order: this.sort.order
         })
         this.items = data
         this.pagination.total = meta?.total || data.length

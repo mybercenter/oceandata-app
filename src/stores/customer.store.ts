@@ -46,8 +46,8 @@ export const useCustomerStore = defineStore('customer', {
           current_conversion: this.filters.current_conversion || undefined,
           customer_date_from: this.filters.customer_date_from || undefined,
           customer_date_to: this.filters.customer_date_to || undefined,
-          sort_by: this.sort.key,
-          sort_dir: this.sort.order
+          sort: this.sort.key,
+          order: this.sort.order
         })
         
         const payload = res.data || res
@@ -142,8 +142,8 @@ export const useCustomerStore = defineStore('customer', {
           current_conversion: this.filters.current_conversion || undefined,
           customer_date_from: this.filters.customer_date_from || undefined,
           customer_date_to: this.filters.customer_date_to || undefined,
-          sort_by: this.sort.key,
-          sort_dir: this.sort.order
+          sort: this.sort.key,
+          order: this.sort.order
         })
       } catch (error: any) {
         useToast().error('Error', 'Failed to export customers')

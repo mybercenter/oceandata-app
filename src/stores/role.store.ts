@@ -20,8 +20,8 @@ export const useRoleStore = defineStore('role', {
           page: this.pagination.page,
           per_page: this.pagination.limit,
           search: this.filters.search,
-          sort_by: this.sort.key,
-          sort_dir: this.sort.order
+          sort: this.sort.key,
+          order: this.sort.order
         })
         this.items = data
         this.pagination.total = meta?.total || data.length

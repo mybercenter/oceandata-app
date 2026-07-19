@@ -204,7 +204,7 @@ const getRoleColor = (roleName?: string) => {
       showView
       emptyTitle="No Users Found"
       @update:filters="filters = ($event as any)"
-      @update:pagination="fetchUsers"
+      @update:pagination="(p) => { pagination.value.page = p.page; pagination.value.limit = p.limit; fetchUsers() }"
       @sort="handleSort"
       @refresh="fetchUsers"
       @add="handleCreateNew"

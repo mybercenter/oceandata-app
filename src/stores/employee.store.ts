@@ -23,8 +23,8 @@ export const useEmployeeStore = defineStore('employee', {
           is_active: this.filters.status === 'active' ? 1 : (this.filters.status === 'inactive' ? 0 : undefined),
           role_id: this.filters.role_id || undefined,
           store_id: this.filters.store_id || undefined,
-          sort_by: this.sort.key,
-          sort_dir: this.sort.order
+          sort: this.sort.key,
+          order: this.sort.order
         })
         this.items = data
         this.pagination.total = meta?.total || data.length

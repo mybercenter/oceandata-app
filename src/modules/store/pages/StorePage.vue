@@ -76,31 +76,19 @@ const handleEdit = (store: Store) => {
   isFormModalOpen.value = true
 }
 
-const handleDelete = (store: Store) => {
-  confirm.confirm({
-    title: 'Delete Store',
-    message: 'Are you sure you want to delete Store ' + store.name + '? This action cannot be undone.',
-    confirmText: 'Delete',
-    type: 'danger',
-    onConfirm: async () => {
-      await deleteStore(store.id)
-      if (selectedStore.value?.id === store.id) {
-        isDetailModalOpen.value = false
-      }
+const handleDelete = async (store: Store) => {
+  if (window.confirm('Are you sure you want to delete Store ' + store.name + '? This action cannot be undone.')) {
+    await deleteStore(store.id)
+    if (selectedStore.value?.id === store.id) {
+      isDetailModalOpen.value = false
     }
-  })
+  }
 }
 
-const handleDeleteSelected = (ids: string[]) => {
-  confirm.confirm({
-    title: 'Delete Selected Stores',
-    message: 'Are you sure you want to delete ' + ids.length + ' selected stores? This action cannot be undone.',
-    confirmText: 'Delete All',
-    type: 'danger',
-    onConfirm: async () => {
-      await deleteSelected(ids)
-    }
-  })
+const handleDeleteSelected = async (ids: string[]) => {
+  if (window.confirm('Are you sure you want to delete ' + ids.length + ' selected stores? This action cannot be undone.')) {
+    await deleteSelected(ids)
+  }
 }
 
 const handleFormSubmit = async (data: any, createAnother: boolean) => {
@@ -144,7 +132,7 @@ watch(filters, () => {
       showView
       emptyTitle="No Stores Found"
       @update:filters="filters = ($event as any)"
-      @update:pagination="fetchStores"
+      @update:pagination="(p) => { pagination.value.page = p.page; pagination.value.limit = p.limit; fetchStores() }"
       @sort="handleSort"
       @refresh="fetchStores"
       @add="handleCreateNew"

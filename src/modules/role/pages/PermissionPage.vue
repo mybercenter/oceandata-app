@@ -139,7 +139,7 @@ const getActionColor = (action: string) => {
       showDelete
       emptyTitle="No Permissions Found"
       @update:filters="filters = ($event as any)"
-      @update:pagination="fetchPermissions"
+      @update:pagination="(p) => { pagination.value.page = p.page; pagination.value.limit = p.limit; fetchPermissions() }"
       @sort="handleSort"
       @refresh="fetchPermissions"
       @add="handleCreateNew"
