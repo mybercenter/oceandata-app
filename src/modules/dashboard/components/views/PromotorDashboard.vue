@@ -3,9 +3,17 @@ import StatisticCard from '../widgets/StatisticCard.vue'
 import QuickActionCard from '../widgets/QuickActionCard.vue'
 import ActivityTimeline from '../widgets/ActivityTimeline.vue'
 import AppCard from '@/shared/components/AppCard.vue'
-import { useDashboardMock } from '../../composables/useDashboardMock'
 
-const { data } = useDashboardMock()
+const props = defineProps<{
+  adminKpis: any[]
+  statusKpis: any[]
+  promotorKpis: any[]
+  chartData: any
+  topPromotors: any[]
+  recentCustomers: any[]
+  recentFollowUps: any[]
+  activityTimeline: any[]
+}>()
 
 const quickActions = [
   { title: 'Add Customer', icon: 'UserPlusIcon', route: '/customer', color: 'text-primary-600 bg-primary-50' },
@@ -20,7 +28,7 @@ const quickActions = [
     <!-- Promotor KPIs -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       <StatisticCard
-        v-for="(kpi, index) in data.promotorKpis"
+        v-for="(kpi, index) in promotorKpis"
         :key="index"
         :title="kpi.title"
         :value="kpi.value"
@@ -55,7 +63,7 @@ const quickActions = [
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
-                <tr v-for="fu in data.recentFollowUps" :key="fu.id" class="hover:bg-gray-50/50 transition-colors">
+                <tr v-for="fu in recentFollowUps" :key="fu.id" class="hover:bg-gray-50/50 transition-colors">
                   <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ fu.customerName }}</td>
                   <td class="px-4 py-3 text-sm text-gray-500">{{ fu.templateUsed }}</td>
                   <td class="px-4 py-3">
@@ -73,11 +81,11 @@ const quickActions = [
         </AppCard>
       </div>
     </div>
-    
+
     <!-- Timeline -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
       <div class="lg:col-span-1">
-        <ActivityTimeline title="My Recent Activities" :activities="data.activityTimeline.filter(a => a.user !== 'System')" />
+        <ActivityTimeline title="My Recent Activities" :activities="activityTimeline.filter(a => a.user !== 'System')" />
       </div>
     </div>
   </div>

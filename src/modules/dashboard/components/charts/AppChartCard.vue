@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import AppCard from '@/shared/components/AppCard.vue'
 import VueApexCharts from 'vue3-apexcharts'
 
@@ -12,9 +12,12 @@ const props = defineProps<{
   height?: number | string
 }>()
 
+const hasError = ref(false)
+const chartKey = ref(0)
+
 const defaultOptions = computed(() => {
   const isDonut = props.type === 'donut'
-  
+
   return {
     chart: {
       type: props.type,
@@ -70,6 +73,27 @@ const defaultOptions = computed(() => {
     ...props.options
   }
 })
+
+// Validate series data
+const isValidSeries = computed(() => {
+  if (!props.series || !Array.isArray(props.series) || props.series.length === 0) {
+    return false
+  }
+  return props.series.every(s => s && s.data && Array.isArray(s.data))
+})
+
+const canRender = computed(() => {
+  return isValidSeries.value && !hasError.value
+})
+
+function handleError() {
+  console.error('Chart rendering error:', props.title)
+  hasError.value = true
+}
+
+function incrementKey() {
+  chartKey.value++
+}
 </script>
 
 <template>
@@ -78,13 +102,22 @@ const defaultOptions = computed(() => {
       <h4 class="text-xl font-bold text-gray-900">{{ title }}</h4>
       <p v-if="subtitle" class="mt-1 text-sm text-gray-500">{{ subtitle }}</p>
     </div>
-    <div class="w-full">
+    <div class="w-full" v-if="canRender">
       <VueApexCharts
+        :key="`chart-${chartKey}`"
         :type="type"
         :height="height || 300"
         :options="defaultOptions"
         :series="series"
+        @error="handleError"
       />
+    </div>
+    <div v-else class="w-full h-64 flex items-center justify-center text-gray-400">
+      <div class="text-center">
+        <p v-if="hasError">Error loading chart</p>
+        <p v-else>No data available</p>
+        <p v-if="!isValidSeries" class="text-xs mt-2">Invalid series format</p>
+      </div>
     </div>
   </AppCard>
 </template>

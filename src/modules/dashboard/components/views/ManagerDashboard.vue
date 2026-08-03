@@ -2,9 +2,17 @@
 import StatisticCard from '../widgets/StatisticCard.vue'
 import AppChartCard from '../charts/AppChartCard.vue'
 import DashboardFilters from '../filters/DashboardFilters.vue'
-import { useDashboardMock } from '../../composables/useDashboardMock'
 
-const { data } = useDashboardMock()
+const props = defineProps<{
+  adminKpis: any[]
+  statusKpis: any[]
+  promotorKpis: any[]
+  chartData: any
+  topPromotors: any[]
+  recentCustomers: any[]
+  recentFollowUps: any[]
+  activityTimeline: any[]
+}>()
 </script>
 
 <template>
@@ -13,7 +21,7 @@ const { data } = useDashboardMock()
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       <StatisticCard
-        v-for="(kpi, index) in data.statusKpis.slice(0, 4)"
+        v-for="(kpi, index) in statusKpis.slice(0, 4)"
         :key="index"
         :title="kpi.title"
         :value="kpi.value"
@@ -25,17 +33,17 @@ const { data } = useDashboardMock()
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-      <AppChartCard 
-        title="Performance by Area" 
-        type="bar" 
-        :series="data.chartData.performanceByArea.series"
-        :options="{ xaxis: { categories: data.chartData.performanceByArea.categories } }"
+      <AppChartCard
+        title="Performance by Area"
+        type="bar"
+        :series="chartData.performanceByArea.series"
+        :options="{ xaxis: { categories: chartData.performanceByArea.categories } }"
       />
-      <AppChartCard 
-        title="Conversion Trend" 
-        type="area" 
-        :series="data.chartData.customerTrend.series"
-        :options="{ xaxis: { categories: data.chartData.customerTrend.categories } }"
+      <AppChartCard
+        title="Conversion Trend"
+        type="area"
+        :series="chartData.customerTrend.series"
+        :options="{ xaxis: { categories: chartData.customerTrend.categories } }"
       />
     </div>
   </div>

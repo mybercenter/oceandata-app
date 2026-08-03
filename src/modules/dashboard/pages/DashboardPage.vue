@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
-import { useDashboardMock } from '../composables/useDashboardMock'
+import { useDashboard } from '../composables/useDashboard'
 import AdminDashboard from '../components/views/AdminDashboard.vue'
 import PromotorDashboard from '../components/views/PromotorDashboard.vue'
 import ManagerDashboard from '../components/views/ManagerDashboard.vue'
@@ -10,9 +10,7 @@ import ErrorState from '../components/states/ErrorState.vue'
 import { useAuth } from '@/shared/composables/useAuth'
 
 const { employee, user } = useAuth()
-const { isLoading, fetchDashboardData } = useDashboardMock()
-
-const hasError = false // Mock error state
+const { isLoading, error, fetchAllData, adminKpis, statusKpis, promotorKpis, chartData, topPromotors, recentCustomers, recentFollowUps, activityTimeline } = useDashboard()
 
 const userRoleName = computed(() => employee.value?.role?.name || user.value?.role?.name || 'Administrator')
 
@@ -24,8 +22,14 @@ const normalizedRole = computed(() => {
 })
 
 onMounted(() => {
-  fetchDashboardData()
+  console.log('Dashboard mounted, fetching data...')
+  fetchAllData()
 })
+
+// Watch for data changes
+watch(() => ({ adminKpis, statusKpis, promotorKpis, chartData, topPromotors }), (newData) => {
+  console.log('Dashboard data updated:', newData)
+}, { deep: true })
 
 const currentDashboardComponent = computed(() => {
   if (normalizedRole.value === 'admin') return AdminDashboard
@@ -44,8 +48,8 @@ const currentDashboardComponent = computed(() => {
       </div>
     </template>
 
-    <div v-if="hasError" class="mt-4">
-      <ErrorState @retry="fetchDashboardData" />
+    <div v-if="error" class="mt-4">
+      <ErrorState @retry="fetchAllData" />
     </div>
     
     <div v-else-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-4">
@@ -53,7 +57,7 @@ const currentDashboardComponent = computed(() => {
     </div>
 
     <div v-else class="mt-4">
-      <component :is="currentDashboardComponent" />
+      <component :is="currentDashboardComponent" :admin-kpis="adminKpis" :status-kpis="statusKpis" :promotor-kpis="promotorKpis" :chart-data="chartData" :top-promotors="topPromotors" :recent-customers="recentCustomers" :recent-follow-ups="recentFollowUps" :activity-timeline="activityTimeline" />
     </div>
   </AppPage>
 </template>
