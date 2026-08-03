@@ -319,15 +319,27 @@ const formatNumber = (num?: number) => {
               @change="toggleSelect(row.id)"
             />
             <div class="flex items-center gap-2">
-              <button @click="emit('view', row)" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md">
+              <button v-if="showView" @click="emit('view', row)" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md">
                 <EyeIcon class="w-4 h-4" />
               </button>
-              <button @click="emit('edit', row)" class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md">
+              <button v-if="showEdit" @click="emit('edit', row)" class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md">
                 <PencilSquareIcon class="w-4 h-4" />
               </button>
-              <button @click="emit('delete', row)" class="p-1.5 text-red-600 hover:bg-red-50 rounded-md">
+              <button v-if="showDelete" @click="emit('delete', row)" class="p-1.5 text-red-600 hover:bg-red-50 rounded-md">
                 <TrashIcon class="w-4 h-4" />
               </button>
+              
+              <AppDropdown v-if="$slots['actions-prepend'] || $slots['actions-append']" width="w-48">
+                <template #trigger>
+                  <button class="p-1.5 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 transition-colors">
+                    <EllipsisVerticalIcon class="w-5 h-5" />
+                  </button>
+                </template>
+                <template #default="{ close }">
+                  <slot name="actions-prepend" :row="row" :close="close"></slot>
+                  <slot name="actions-append" :row="row" :close="close"></slot>
+                </template>
+              </AppDropdown>
             </div>
           </div>
           
@@ -337,7 +349,7 @@ const formatNumber = (num?: number) => {
               <div class="text-gray-500 font-medium">{{ col.label }}</div>
               <div class="text-right flex justify-end">
                 <slot :name="col.key" :row="row" :value="row[col.key]">
-                  <AppStatusBadge v-if="col.type === 'status'" :status="row[col.key]" />
+                  <AppStatusBadge v-if="col.type === 'status'" :status="typeof row[col.key] === 'boolean' ? (row[col.key] ? 'Active' : 'Inactive') : (row[col.key] === 1 ? 'Active' : (row[col.key] === 0 ? 'Inactive' : row[col.key]))" />
                   <span v-else-if="col.type === 'date'" class="text-gray-600">{{ formatDate(row[col.key]) }}</span>
                   <span v-else-if="col.type === 'number'" class="font-mono text-gray-900">{{ formatNumber(row[col.key]) }}</span>
                   <span v-else class="text-gray-900 font-semibold">{{ row[col.key] || '-' }}</span>

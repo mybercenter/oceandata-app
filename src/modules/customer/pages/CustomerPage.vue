@@ -13,7 +13,7 @@ import CustomerDetailModal from '../components/CustomerDetailModal.vue'
 import FollowUpWorkflowModal from '../../customer-follow-up/components/FollowUpWorkflowModal.vue'
 
 import { useCustomer } from '../composables/useCustomer'
-import { useConfirmDialog } from '@/shared/composables/useConfirmDialog'
+
 import type { Customer } from '../types/customer.types'
 
 import { useLookupStore } from '@/stores/lookup.store'
@@ -41,7 +41,7 @@ const {
 
 const { hasPermission } = useAuth()
 
-const confirm = useConfirmDialog()
+
 
 const lookupStore = useLookupStore()
 const { areas, stores, employees } = storeToRefs(lookupStore)
@@ -111,31 +111,17 @@ const handleFollowUp = (customer: Customer) => {
   isFollowUpModalOpen.value = true
 }
 
-const handleDelete = (customer: Customer) => {
-  confirm.confirm({
-    title: 'Delete Customer',
-    message: 'Are you sure you want to delete customer ' + customer.full_name + '?',
-    confirmText: 'Delete',
-    type: 'danger',
-    onConfirm: async () => {
-      await deleteCustomer(customer.id)
-      if (selectedCustomer.value?.id === customer.id) {
-        isDetailModalOpen.value = false
-      }
-    }
-  })
+const handleDelete = async (customer: Customer) => {
+  if (!window.confirm('Hapus customer "' + customer.full_name + '"? Tindakan ini tidak dapat dibatalkan.')) return
+  await deleteCustomer(customer.id)
+  if (selectedCustomer.value?.id === customer.id) {
+    isDetailModalOpen.value = false
+  }
 }
 
-const handleDeleteSelected = (ids: (string|number)[]) => {
-  confirm.confirm({
-    title: 'Delete Selected Customers',
-    message: 'Are you sure you want to delete ' + ids.length + ' selected customers?',
-    confirmText: 'Delete All',
-    type: 'danger',
-    onConfirm: async () => {
-      await deleteSelected(ids)
-    }
-  })
+const handleDeleteSelected = async (ids: (string|number)[]) => {
+  if (!window.confirm('Hapus ' + ids.length + ' customer yang dipilih? Tindakan ini tidak dapat dibatalkan.')) return
+  await deleteSelected(ids)
 }
 
 const formErrors = ref<Record<string, string[]>>({})
@@ -255,7 +241,7 @@ const formatDate = (isoString?: string) => {
       </template>
 
       <template #customer_status="{ row }">
-        <AppStatusBadge :status="row.customer_status === 'Inquiry' ? 'active' : 'purchased'" :label="row.customer_status" />
+        <AppStatusBadge :status="row.customer_status" />
       </template>
 
       <template #current_conversion="{ row }">

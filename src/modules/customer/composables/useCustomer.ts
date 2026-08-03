@@ -6,14 +6,15 @@ import { useToast } from '@/shared/composables/useToast'
 
 export const useCustomer = () => {
   const store = useCustomerStore()
-  const { 
-    customers, 
-    customer, 
-    loading: isLoading, 
-    submitting: isSubmitting, 
-    pagination, 
-    filters, 
-    sort 
+  const {
+    customers,
+    customer,
+    loading: isLoading,
+    submitting: isSubmitting,
+    pagination,
+    filters,
+    sort,
+    statistics
   } = storeToRefs(store)
 
   const toast = useToast()
@@ -22,22 +23,19 @@ export const useCustomer = () => {
     await store.fetchCustomers()
   }
 
-  // CRM Metrics Computed Properties based on currently loaded unfiltered customers (Wait, if we use server-side pagination, the metrics won't be accurate for ALL customers unless the backend provides an aggregate API). 
-  // For now, we will compute metrics based on the loaded page, or if it requires global metrics, backend integration is needed. 
-  // Let's provide a basic computation so the component doesn't break, but ideally we'd fetch stats from a backend endpoint in the future.
+  // CRM Metrics Computed Properties based on backend statistics
+  // These statistics are calculated from all customer data, not just the current page
   const metrics = computed(() => {
-    const today = new Date().toISOString().split('T')[0]
-    const thisMonthPrefix = today.substring(0, 7) // YYYY-MM
-    
+    const stats = statistics.value
     return {
-      total: pagination.value.total || customers.value.length,
-      inquiry: customers.value.filter(c => c.customer_status === 'Inquiry').length,
-      purchased: customers.value.filter(c => c.customer_status === 'Purchased').length,
-      potential: customers.value.filter(c => c.current_conversion === 'Potential').length,
-      prospect: customers.value.filter(c => c.current_conversion === 'Prospect').length,
-      hotProspect: customers.value.filter(c => c.current_conversion === 'Hot Prospect').length,
-      today: customers.value.filter(c => c.customer_date === today).length,
-      thisMonth: customers.value.filter(c => (c.customer_date || '').startsWith(thisMonthPrefix)).length
+      total: stats.total || pagination.value.total || customers.value.length,
+      inquiry: stats.inquiry || 0,
+      purchased: stats.purchased || 0,
+      potential: stats.potential || 0,
+      prospect: stats.prospect || 0,
+      hotProspect: stats.hot_prospect || 0,
+      today: stats.today || 0,
+      thisMonth: stats.this_month || 0
     }
   })
 

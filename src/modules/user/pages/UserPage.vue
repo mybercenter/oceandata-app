@@ -145,7 +145,7 @@ const handleFormSubmit = async (data: any, createAnother: boolean) => {
 
 const handleResetPasswordSubmit = async (newPassword: string) => {
   if (!selectedUser.value) return
-  const success = await resetPassword(selectedUser.value.id, newPassword)
+  const success = await resetPassword(selectedUser.value.id, { password: newPassword, password_confirmation: newPassword })
   if (success) {
     isResetPasswordOpen.value = false
   }

@@ -14,6 +14,16 @@ export const useCustomerStore = defineStore('customer', {
       limit: 10,
       total: 0
     },
+    statistics: {
+      total: 0,
+      inquiry: 0,
+      purchased: 0,
+      potential: 0,
+      prospect: 0,
+      hot_prospect: 0,
+      today: 0,
+      this_month: 0
+    },
     filters: {
       search: '',
       status: '',
@@ -53,6 +63,7 @@ export const useCustomerStore = defineStore('customer', {
         const payload = res.data || res
         this.customers = payload.data || payload || []
         this.pagination.total = payload.meta?.total || this.customers.length
+        this.statistics = payload.meta?.statistics || this.statistics
       } catch (error: any) {
         useToast().error('Error', error.response?.data?.message || 'Failed to load customers')
       } finally {
