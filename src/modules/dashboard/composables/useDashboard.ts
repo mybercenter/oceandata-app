@@ -1,4 +1,4 @@
-import { ref, computed, reactive, toRefs } from 'vue'
+import { ref } from 'vue'
 import { dashboardService } from '../services/dashboard.service'
 import type {
   DashboardSummary,
@@ -31,7 +31,7 @@ export const useDashboard = () => {
   // Function to update KPI refs
   const updateKPIs = () => {
     // Update Admin KPIs
-    const updatedAdminKpis = [
+    const updatedAdminKpis: KpiMetric[] = [
       {
         title: 'Total Areas',
         value: (areaPerformance.value?.length || 0).toString(),
@@ -66,13 +66,13 @@ export const useDashboard = () => {
       }
     ]
 
-    adminKpis.value = updatedAdminKpis
+    adminKpis.value = updatedAdminKpis as KpiMetric[]
 
     // Update Status KPIs
     const customerStatusData = customerStatus.value
     const conversionData = conversion.value
 
-    const updatedStatusKpis = [
+    const updatedStatusKpis: KpiMetric[] = [
       {
         title: 'Inquiry',
         value: (customerStatusData?.inquiry || 0).toLocaleString(),
@@ -115,11 +115,11 @@ export const useDashboard = () => {
       }
     ]
 
-    statusKpis.value = updatedStatusKpis
+    statusKpis.value = updatedStatusKpis as KpiMetric[]
 
     // Update Promotor KPIs
     const summaryData = summary.value
-    const updatedPromotorKpis = [
+    const updatedPromotorKpis: KpiMetric[] = [
       {
         title: "Today's Customer",
         value: (summaryData?.today_customers || 0).toString(),
@@ -154,7 +154,7 @@ export const useDashboard = () => {
       }
     ]
 
-    promotorKpis.value = updatedPromotorKpis
+    promotorKpis.value = updatedPromotorKpis as KpiMetric[]
 
     // Update Chart Data
     const trendData = monthlyTrend.value || []
