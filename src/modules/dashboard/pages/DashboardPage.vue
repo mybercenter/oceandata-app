@@ -57,7 +57,7 @@ const currentDashboardComponent = computed(() => {
     </div>
 
     <div v-else class="mt-4">
-      <component :is="currentDashboardComponent" :admin-kpis="adminKpis" :status-kpis="statusKpis" :promotor-kpis="promotorKpis" :chart-data="chartData" :top-promotors="topPromotors" :recent-customers="recentCustomers" :recent-follow-ups="recentFollowUps" :activity-timeline="activityTimeline" />
+      <component :is="currentDashboardComponent" @update:filters="fetchAllData" :admin-kpis="adminKpis" :status-kpis="statusKpis" :promotor-kpis="promotorKpis" :chart-data="chartData" :top-promotors="topPromotors" :recent-customers="recentCustomers" :recent-follow-ups="recentFollowUps" :activity-timeline="activityTimeline" />
     </div>
   </AppPage>
 </template>

@@ -1,6 +1,9 @@
 import http from '@/shared/services/http'
 
 export interface DashboardSummary {
+  total_areas: number
+  total_stores: number
+  total_employees: number
   total_customers: number
   today_customers: number
   purchased_customers: number
@@ -63,8 +66,8 @@ export interface PromotorPerformance {
   store_name: string
   total_customers: number
   purchased: number
-  total_follow_ups: number
-  conversion_rate: number
+  followed_up_customers: number
+  follow_up_rate: number
 }
 
 export interface MonthlyTrend {
@@ -72,6 +75,13 @@ export interface MonthlyTrend {
   customers: number
   purchased: number
   follow_ups: number
+}
+
+export interface RecentFollowUp {
+  id: number
+  customerName: string
+  templateUsed: string
+  conversionStatus: string
 }
 
 class DashboardService {
@@ -112,6 +122,11 @@ class DashboardService {
 
   async getMonthlyTrend(filters: Record<string, any> = {}): Promise<MonthlyTrend[]> {
     const response = await http.get('/dashboard/monthly-trend', { params: filters })
+    return response.data.data
+  }
+
+  async getRecentFollowUps(filters: Record<string, any> = {}): Promise<RecentFollowUp[]> {
+    const response = await http.get('/dashboard/recent-follow-ups', { params: filters })
     return response.data.data
   }
 }

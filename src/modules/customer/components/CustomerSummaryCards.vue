@@ -39,7 +39,7 @@ defineProps<{
     <div class="min-w-[140px] sm:min-w-0 flex-shrink-0 sm:flex-shrink snap-start bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col hover:border-blue-300 transition-colors">
       <div class="flex items-center gap-2 text-blue-500 mb-2">
         <ChatBubbleLeftEllipsisIcon class="w-4 h-4" />
-        <span class="text-xs font-semibold uppercase tracking-wider">Inquiry</span>
+        <span class="text-xs font-semibold uppercase tracking-wider">Tanya-tanya</span>
       </div>
       <p class="text-2xl font-bold text-gray-900">{{ metrics.inquiry }}</p>
     </div>

@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, ref } from 'vue'
 import AppCard from '@/shared/components/AppCard.vue'
 import VueApexCharts from 'vue3-apexcharts'
@@ -78,6 +78,9 @@ const defaultOptions = computed(() => {
 const isValidSeries = computed(() => {
   if (!props.series || !Array.isArray(props.series) || props.series.length === 0) {
     return false
+  }
+  if (props.type === 'donut') {
+    return props.series.every(s => typeof s === 'number')
   }
   return props.series.every(s => s && s.data && Array.isArray(s.data))
 })

@@ -8,7 +8,8 @@ import type {
   AreaPerformance,
   StorePerformance,
   PromotorPerformance,
-  MonthlyTrend
+  MonthlyTrend,
+  RecentFollowUp
 } from '../services/dashboard.service'
 import type { KpiMetric, DashboardRole } from '../types/dashboard.types'
 
@@ -25,16 +26,18 @@ export const useDashboard = () => {
   const storePerformance = ref<StorePerformance[]>([])
   const promotorPerformance = ref<PromotorPerformance[]>([])
   const monthlyTrend = ref<MonthlyTrend[]>([])
+  const recentFollowUps = ref<RecentFollowUp[]>([])
 
   const currentRole = ref<DashboardRole>('admin')
 
   // Function to update KPI refs
   const updateKPIs = () => {
     // Update Admin KPIs
+    const summaryData = summary.value
     const updatedAdminKpis: KpiMetric[] = [
       {
         title: 'Total Areas',
-        value: (areaPerformance.value?.length || 0).toString(),
+        value: (summaryData?.total_areas || 0).toString(),
         trend: 'neutral',
         percentage: 0,
         icon: 'MapIcon',
@@ -42,7 +45,7 @@ export const useDashboard = () => {
       },
       {
         title: 'Total Stores',
-        value: (storePerformance.value?.length || 0).toString(),
+        value: (summaryData?.total_stores || 0).toString(),
         trend: 'neutral',
         percentage: 0,
         icon: 'BuildingStorefrontIcon',
@@ -50,7 +53,7 @@ export const useDashboard = () => {
       },
       {
         title: 'Total Employees',
-        value: (promotorPerformance.value?.length || 0).toString(),
+        value: (summaryData?.total_employees || 0).toString(),
         trend: 'neutral',
         percentage: 0,
         icon: 'UsersIcon',
@@ -74,7 +77,7 @@ export const useDashboard = () => {
 
     const updatedStatusKpis: KpiMetric[] = [
       {
-        title: 'Inquiry',
+        title: 'Tanya-tanya',
         value: (customerStatusData?.inquiry || 0).toLocaleString(),
         trend: 'neutral',
         percentage: customerStatusData?.inquiry_percentage || 0,
@@ -118,7 +121,6 @@ export const useDashboard = () => {
     statusKpis.value = updatedStatusKpis as KpiMetric[]
 
     // Update Promotor KPIs
-    const summaryData = summary.value
     const updatedPromotorKpis: KpiMetric[] = [
       {
         title: "Today's Customer",
@@ -174,7 +176,7 @@ export const useDashboard = () => {
         ]
       },
       conversionDistribution: {
-        labels: ['Inquiry', 'Potential', 'Prospect', 'Hot Prospect', 'Purchased'],
+        labels: ['Tanya-tanya', 'Potential', 'Prospect', 'Hot Prospect', 'Beli'],
         series: [
           customerStatusData?.inquiry || 0,
           conversionData?.potential || 0,
@@ -203,8 +205,8 @@ export const useDashboard = () => {
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.employee_name}`,
       store: p.store_name || 'N/A',
       area: 'Unknown',
-      conversionRate: p.conversion_rate,
-      progress: p.conversion_rate
+      conversionRate: p.follow_up_rate,
+      progress: p.follow_up_rate
     }))
 
     topPromotors.value = updatedTopPromotors
@@ -223,7 +225,8 @@ export const useDashboard = () => {
         areaData,
         storeData,
         promotorData,
-        trendData
+        trendData,
+        recentFollowUpsData
       ] = await Promise.all([
         dashboardService.getSummary(filters),
         dashboardService.getCustomerStatus(filters),
@@ -232,7 +235,8 @@ export const useDashboard = () => {
         dashboardService.getAreaPerformance(filters),
         dashboardService.getStorePerformance(filters),
         dashboardService.getPromotorPerformance(filters),
-        dashboardService.getMonthlyTrend(filters)
+        dashboardService.getMonthlyTrend(filters),
+        dashboardService.getRecentFollowUps(filters)
       ])
 
       summary.value = summaryData
@@ -243,6 +247,7 @@ export const useDashboard = () => {
       storePerformance.value = storeData
       promotorPerformance.value = promotorData
       monthlyTrend.value = trendData
+      recentFollowUps.value = recentFollowUpsData
 
       console.log('Dashboard data loaded:', {
         summary: summaryData,
@@ -272,18 +277,18 @@ export const useDashboard = () => {
 
   // Computed properties for Status KPIs
   const statusKpis = ref<KpiMetric[]>([
-    { title: 'Inquiry', value: '0', trend: 'neutral', percentage: 0, icon: 'QuestionMarkCircleIcon', color: 'info' },
+    { title: 'Tanya-tanya', value: '0', trend: 'neutral', percentage: 0, icon: 'QuestionMarkCircleIcon', color: 'info' },
     { title: 'Potential', value: '0', trend: 'neutral', percentage: 0, icon: 'LightBulbIcon', color: 'warning' },
     { title: 'Prospect', value: '0', trend: 'neutral', percentage: 0, icon: 'ChartBarIcon', color: 'primary' },
     { title: 'Hot Prospect', value: '0', trend: 'neutral', percentage: 0, icon: 'FireIcon', color: 'danger' },
-    { title: 'Purchased', value: '0', trend: 'neutral', percentage: 0, icon: 'CheckBadgeIcon', color: 'success' }
+    { title: 'Beli', value: '0', trend: 'neutral', percentage: 0, icon: 'CheckBadgeIcon', color: 'success' }
   ])
 
   // Computed properties for Promotor KPIs
   const promotorKpis = ref<KpiMetric[]>([
     { title: "Today's Customer", value: '0', trend: 'neutral', percentage: 0, icon: 'UserPlusIcon', color: 'primary' },
     { title: "Today's Follow Up", value: '0', trend: 'neutral', percentage: 0, icon: 'ChatBubbleLeftRightIcon', color: 'info' },
-    { title: 'Purchased', value: '0', trend: 'neutral', percentage: 0, icon: 'CheckBadgeIcon', color: 'success' },
+    { title: 'Beli', value: '0', trend: 'neutral', percentage: 0, icon: 'CheckBadgeIcon', color: 'success' },
     { title: 'Hot Prospect', value: '0', trend: 'neutral', percentage: 0, icon: 'FireIcon', color: 'danger' }
   ])
 
@@ -323,7 +328,7 @@ export const useDashboard = () => {
     chartData,
     topPromotors,
     recentCustomers: [] as any[], // Backend doesn't provide this yet
-    recentFollowUps: [] as any[], // Backend doesn't provide this yet
+    recentFollowUps,
     activityTimeline: [] as any[], // Backend doesn't provide this yet
     summary,
     customerStatus,

@@ -103,8 +103,8 @@ const formatDate = (isoString?: string) => {
 
     <template #employee="{ row }">
       <div class="flex flex-col">
-        <span class="font-medium text-gray-800">{{ row.employee?.full_name || '-' }}</span>
-        <span class="text-[10px] text-gray-500">{{ row.employee?.store?.name || '-' }}</span>
+        <span class="font-medium text-gray-800">{{ row.customer?.employee?.full_name || '-' }}</span>
+        <span class="text-[10px] text-gray-500">{{ row.customer?.employee?.store?.name || '-' }}</span>
       </div>
     </template>
 
@@ -119,8 +119,8 @@ const formatDate = (isoString?: string) => {
 
 
     <template #evidence="{ row }">
-      <div v-if="row.evidence" class="w-8 h-8 rounded border overflow-hidden mx-auto cursor-pointer hover:ring-2 hover:ring-primary-500">
-        <img src="https://via.placeholder.com/40" class="w-full h-full object-cover" />
+      <div v-if="row.evidenceUrl" class="w-8 h-8 rounded border overflow-hidden mx-auto cursor-pointer hover:ring-2 hover:ring-primary-500">
+        <img :src="row.evidenceUrl" class="w-full h-full object-cover" />
       </div>
       <span v-else class="text-[10px] text-gray-400 italic">No Evidence</span>
     </template>

@@ -57,8 +57,8 @@ const employeeOptions = computed(() => [{ label: 'All Employees', value: '' }, .
 
 const statusOptions = [
   { label: 'All Status', value: '' },
-  { label: 'Inquiry', value: 'Inquiry' },
-  { label: 'Purchased', value: 'Purchased' }
+  { label: 'Tanya-tanya', value: 'Inquiry' },
+  { label: 'Beli', value: 'Purchased' }
 ]
 
 const conversionOptions = [
@@ -229,7 +229,7 @@ const formatDate = (isoString?: string) => {
       <template #full_name="{ row }">
         <div class="flex flex-col">
           <span class="font-bold text-gray-900">{{ row.full_name }}</span>
-          <span v-if="row.gender" class="text-xs text-gray-400">{{ row.gender }}</span>
+          <span v-if="row.gender" class="text-xs text-gray-400">{{ row.gender === 'Male' ? 'Pria' : (row.gender === 'Female' ? 'Wanita' : row.gender) }}</span>
         </div>
       </template>
 

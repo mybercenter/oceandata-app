@@ -30,7 +30,10 @@ const variant = computed(() => {
 })
 
 const displayText = computed(() => {
-  return props.label || props.status
+  const text = props.label || props.status
+  if (text === 'Inquiry' || text === 'inquiry') return 'Tanya-tanya'
+  if (text === 'Purchased' || text === 'purchased') return 'Beli'
+  return text
 })
 </script>
 

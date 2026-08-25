@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import ReportFilterPanel from '../components/ReportFilterPanel.vue'
@@ -41,7 +41,7 @@ const growthSeries = computed(() => ([{
 
 const statusOptions = computed(() => ({
   chart: { type: 'donut', height: 300, fontFamily: 'inherit' },
-  labels: ['Inquiry', 'Purchased'],
+  labels: ['Tanya-tanya', 'Beli'],
   colors: ['#3b82f6', '#10b981'],
   plotOptions: { pie: { donut: { size: '70%' } } },
   dataLabels: { enabled: false },
@@ -90,14 +90,14 @@ const conversionSeries = computed(() => ([
         <div class="bg-blue-50/50 p-4 rounded-xl shadow-sm border border-blue-100">
           <div class="flex items-center gap-2 text-blue-600 mb-1">
             <ChatBubbleLeftRightIcon class="w-4 h-4" />
-            <span class="text-xs font-bold uppercase tracking-wider">Inquiry</span>
+            <span class="text-xs font-bold uppercase tracking-wider">Tanya-tanya</span>
           </div>
           <p class="text-2xl font-bold text-blue-900">{{ dashboardMetrics.inquiry }}</p>
         </div>
         <div class="bg-emerald-50/50 p-4 rounded-xl shadow-sm border border-emerald-100">
           <div class="flex items-center gap-2 text-emerald-600 mb-1">
             <ShoppingBagIcon class="w-4 h-4" />
-            <span class="text-xs font-bold uppercase tracking-wider">Purchased</span>
+            <span class="text-xs font-bold uppercase tracking-wider">Beli</span>
           </div>
           <p class="text-2xl font-bold text-emerald-900">{{ dashboardMetrics.purchased }}</p>
         </div>

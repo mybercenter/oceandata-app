@@ -47,7 +47,7 @@ const originalMessage = ref('')
 const editedMessage = ref('')
 const followUpDate = ref(new Date().toISOString().split('T')[0])
 const notes = ref('')
-const conversion = ref('Potential')
+const conversion = ref('Nothing')
 const formError = ref('')
 // Watch for Modal Open
 watch(() => props.isOpen, async (val) => {
@@ -64,14 +64,17 @@ watch(() => props.isOpen, async (val) => {
     if (props.customer) {
       resolvedCustomer.value = props.customer
       selectedCustomerId.value = props.customer.id
-      conversion.value = props.customer.current_conversion || ''
+      conversion.value = props.customer.current_conversion || 'Nothing'
     } else {
       resolvedCustomer.value = null
       selectedCustomerId.value = ''
-      conversion.value = ''
+      conversion.value = 'Nothing'
     }
+    evidenceFile.value = null
   }
 })
+
+const evidenceFile = ref<File | null>(null)
 
 const getAreaId = (customer: any) => {
   if (!customer) return null
@@ -87,7 +90,7 @@ watch(selectedCustomerId, async (val) => {
       const customerDetails = await customerService.show(val)
       if (customerDetails) {
         resolvedCustomer.value = customerDetails
-        conversion.value = customerDetails.current_conversion || ''
+        conversion.value = customerDetails.current_conversion || 'Nothing'
         
         // Auto trigger templates if dedicate is already selected
         const areaId = getAreaId(customerDetails)
@@ -185,7 +188,8 @@ const handleSave = async () => {
     whatsappMessage: editedMessage.value,
     followUpDate: followUpDate.value,
     notes: notes.value,
-    conversion: conversion.value
+    conversion: conversion.value,
+    evidence: evidenceFile.value
   })
 
   if (success) {
@@ -344,7 +348,7 @@ const handleSave = async () => {
                 label="Conversion Status" 
                 v-model="conversion"
                 :options="[
-                  { label: '-- Belum ada conversion --', value: '' },
+                  { label: '-- Belum ada conversion --', value: 'Nothing' },
                   { label: 'Potential', value: 'Potential' },
                   { label: 'Prospect', value: 'Prospect' },
                   { label: 'Hot Prospect', value: 'Hot Prospect' }
@@ -353,7 +357,7 @@ const handleSave = async () => {
             </div>
           </div>
           
-          <EvidenceUploader />
+          <EvidenceUploader v-model="evidenceFile" />
           
           <AppTextarea
             label="Internal Notes (Optional)"

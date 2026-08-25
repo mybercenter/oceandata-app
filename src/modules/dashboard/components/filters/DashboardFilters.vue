@@ -1,9 +1,72 @@
-﻿<script setup lang="ts">
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref, watch, onMounted, computed } from 'vue'
+import http from '@/shared/services/http'
+
+const emit = defineEmits<{
+  (e: 'update:filters', filters: Record<string, any>): void
+}>()
 
 const dateRange = ref('this_month')
 const selectedArea = ref('all')
 const selectedStore = ref('all')
+
+const areas = ref<any[]>([])
+const stores = ref<any[]>([])
+
+const fetchLookups = async () => {
+  try {
+    const response = await http.get('/lookups')
+    if (response.data && response.data.data) {
+      areas.value = response.data.data.areas || []
+      stores.value = response.data.data.stores || []
+    }
+  } catch (error) {
+    console.error('Failed to fetch lookups', error)
+  }
+}
+
+const filteredStores = computed(() => {
+  if (selectedArea.value === 'all') return stores.value
+  return stores.value.filter(s => s.area_id.toString() === selectedArea.value.toString())
+})
+
+const getFilters = () => {
+  const filters: Record<string, any> = {}
+  
+  if (selectedArea.value !== 'all') filters.area_id = selectedArea.value
+  if (selectedStore.value !== 'all') filters.store_id = selectedStore.value
+
+  const today = new Date()
+  if (dateRange.value === 'today') {
+    const dateStr = today.toISOString().split('T')[0]
+    filters.date_from = dateStr
+    filters.date_to = dateStr
+  } else if (dateRange.value === 'this_week') {
+    const startOfWeek = new Date(today)
+    startOfWeek.setDate(today.getDate() - today.getDay())
+    filters.date_from = startOfWeek.toISOString().split('T')[0]
+    filters.date_to = today.toISOString().split('T')[0]
+  } else if (dateRange.value === 'this_month') {
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+    filters.date_from = startOfMonth.toISOString().split('T')[0]
+    filters.date_to = today.toISOString().split('T')[0]
+  } else if (dateRange.value === 'this_year') {
+    const startOfYear = new Date(today.getFullYear(), 0, 1)
+    filters.date_from = startOfYear.toISOString().split('T')[0]
+    filters.date_to = today.toISOString().split('T')[0]
+  }
+
+  return filters
+}
+
+watch([selectedArea, selectedStore, dateRange], () => {
+  emit('update:filters', getFilters())
+})
+
+onMounted(() => {
+  fetchLookups()
+  // Optional: Emit initial filters if needed, but fetchAllData handles its own defaults
+})
 </script>
 
 <template>
@@ -16,17 +79,14 @@ const selectedStore = ref('all')
     </div>
 
     <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-      <select v-model="selectedArea" class="w-full sm:w-auto bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block p-2">
+      <select v-model="selectedArea" @change="selectedStore = 'all'" class="w-full sm:w-auto bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block p-2">
         <option value="all">All Areas</option>
-        <option value="jakarta">Jakarta</option>
-        <option value="surabaya">Surabaya</option>
-        <option value="bandung">Bandung</option>
+        <option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
       </select>
 
       <select v-model="selectedStore" class="w-full sm:w-auto bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block p-2">
         <option value="all">All Stores</option>
-        <option value="store1">Store 1</option>
-        <option value="store2">Store 2</option>
+        <option v-for="store in filteredStores" :key="store.id" :value="store.id">{{ store.name }}</option>
       </select>
 
       <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>

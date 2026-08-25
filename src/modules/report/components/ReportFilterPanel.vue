@@ -119,7 +119,7 @@ const handleApply = () => {
           <AppSelect 
             label="Status" 
             v-model="localFilter.customerStatus" 
-            :options="[{label:'All', value:''}, {label:'Inquiry', value:'Inquiry'}, {label:'Purchased', value:'Purchased'}]" 
+            :options="[{label:'All', value:''}, {label:'Tanya-tanya', value:'Inquiry'}, {label:'Beli', value:'Purchased'}]" 
           />
           <AppSelect 
             label="Conversion" 

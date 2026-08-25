@@ -156,7 +156,7 @@ const getDedicateColor = (dedicate?: string) => {
           </div>
           <div class="bg-emerald-50 p-3 rounded-lg text-center">
             <div class="text-xl font-bold text-emerald-700">{{ employee.stats?.purchasedCustomers || 0 }}</div>
-            <div class="text-[10px] text-emerald-600 uppercase mt-1 font-semibold leading-tight">Purchased<br/>Customers</div>
+            <div class="text-[10px] text-emerald-600 uppercase mt-1 font-semibold leading-tight">Pelanggan<br/>Beli</div>
           </div>
         </div>
       </div>

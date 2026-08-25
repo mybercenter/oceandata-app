@@ -105,8 +105,8 @@ const handleHistoryPagination = () => {
                 <dd class="text-sm text-gray-900">{{ formatDate(customer.customer_date) }}</dd>
               </div>
               <div>
-                <dt class="text-xs font-medium text-gray-500">Gender</dt>
-                <dd class="text-sm text-gray-900">{{ customer.gender || '-' }}</dd>
+                <dt class="text-xs font-medium text-gray-500">Jenis Kelamin</dt>
+                <dd class="text-sm text-gray-900">{{ customer.gender === 'Male' ? 'Pria' : (customer.gender === 'Female' ? 'Wanita' : (customer.gender || '-')) }}</dd>
               </div>
               <div>
                 <dt class="text-xs font-medium text-gray-500">Social Media</dt>

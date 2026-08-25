@@ -17,11 +17,15 @@ const props = defineProps<{
   recentFollowUps: any[]
   activityTimeline: any[]
 }>()
+
+const emit = defineEmits<{
+  (e: 'update:filters', filters: Record<string, any>): void
+}>()
 </script>
 
 <template>
   <div class="space-y-6">
-    <DashboardFilters />
+    <DashboardFilters @update:filters="f => emit('update:filters', f)" />
 
     <!-- Top KPIs -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">

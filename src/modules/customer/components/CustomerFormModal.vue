@@ -21,13 +21,13 @@ const emit = defineEmits<{
 }>()
 
 const genderOptions = [
-  { label: 'Male', value: 'Male' },
-  { label: 'Female', value: 'Female' }
+  { label: 'Pria', value: 'Male' },
+  { label: 'Wanita', value: 'Female' }
 ]
 
 const statusOptions = [
-  { label: 'Inquiry', value: 'Inquiry' },
-  { label: 'Purchased', value: 'Purchased' }
+  { label: 'Tanya-tanya', value: 'Inquiry' },
+  { label: 'Beli', value: 'Purchased' }
 ]
 
 const conversionOptions = [
@@ -175,9 +175,9 @@ const getError = (field: string) => {
             required
           />
           <AppSelect
-            label="Gender"
+            label="Jenis Kelamin"
             v-model="formData.gender"
-            :options="[{label: 'Select Gender', value: ''}, ...genderOptions]"
+            :options="[{label: 'Pilih Jenis Kelamin', value: ''}, ...genderOptions]"
             :error="getError('gender')"
           />
           <AppAsyncSelect

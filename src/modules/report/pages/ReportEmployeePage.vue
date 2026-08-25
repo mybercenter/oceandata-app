@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import AppPage from '@/shared/components/page/AppPage.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
@@ -20,8 +20,8 @@ const columns: TableColumn[] = [
   { key: 'role', label: 'Role', type: 'text' },
   { key: 'area', label: 'Area / Store', type: 'text' },
   { key: 'totalCustomers', label: 'Customers', type: 'text', align: 'center' },
-  { key: 'inquiry', label: 'Inquiry', type: 'text', align: 'center' },
-  { key: 'purchased', label: 'Purchased', type: 'text', align: 'center' },
+  { key: 'inquiry', label: 'Tanya-tanya', type: 'text', align: 'center' },
+  { key: 'purchased', label: 'Beli', type: 'text', align: 'center' },
   { key: 'totalFollowUps', label: 'Follow Ups', type: 'text', align: 'center' },
   { key: 'conversionRate', label: 'Conversion', type: 'text', align: 'center' },
   { key: 'actions', label: 'Actions', type: 'actions', align: 'right' }

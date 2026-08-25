@@ -26,13 +26,14 @@ const saveEvidence = async () => {
   if (!newEvidenceFile.value || !props.followUp) return
   isSavingEvidence.value = true
   try {
-    const mockUrl = URL.createObjectURL(newEvidenceFile.value)
-    await customerFollowUpService.updateFollowUp(props.followUp.id, {
-      evidence: mockUrl
+    const updatedFollowUp = await customerFollowUpService.updateFollowUp(props.followUp.id, {
+      evidence: newEvidenceFile.value as any
     })
     
     // Mutate locally for instant feedback
-    props.followUp.evidence = mockUrl
+    if (props.followUp) {
+      props.followUp.evidenceUrl = updatedFollowUp.evidenceUrl
+    }
     
     emit('updated')
     isEditingEvidence.value = false
@@ -88,11 +89,11 @@ const formatDateTime = (isoString?: string) => {
             </div>
             <div>
               <dt class="text-xs font-medium text-gray-500">Performed By</dt>
-              <dd class="text-sm text-gray-900">{{ followUp.employee?.full_name || '-' }}</dd>
+              <dd class="text-sm text-gray-900">{{ followUp.customer?.employee?.full_name || '-' }}</dd>
             </div>
             <div>
               <dt class="text-xs font-medium text-gray-500">Store & Area</dt>
-              <dd class="text-sm text-gray-900">{{ followUp.employee?.store?.name || '-' }} ({{ followUp.employee?.areas?.[0]?.name || '-' }})</dd>
+              <dd class="text-sm text-gray-900">{{ followUp.customer?.employee?.store?.name || '-' }} ({{ followUp.customer?.employee?.areas?.[0]?.name || '-' }})</dd>
             </div>
           </dl>
 
@@ -100,7 +101,7 @@ const formatDateTime = (isoString?: string) => {
             <div class="flex justify-between items-center mb-3 border-b pb-1">
               <h3 class="text-sm font-semibold text-gray-900">Evidence</h3>
               <button 
-                v-if="followUp.evidence && !isEditingEvidence" 
+                v-if="followUp.evidenceUrl && !isEditingEvidence" 
                 @click="isEditingEvidence = true" 
                 class="text-xs font-medium text-primary-600 hover:text-primary-700"
               >
@@ -108,16 +109,16 @@ const formatDateTime = (isoString?: string) => {
               </button>
             </div>
             
-            <div v-if="followUp.evidence && !isEditingEvidence" class="w-full h-48 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
-              <img :src="followUp.evidence.startsWith('blob:') ? followUp.evidence : 'https://via.placeholder.com/400x300.png?text=Evidence+Mock'" alt="Evidence" class="w-full h-full object-cover" />
+            <div v-if="followUp.evidenceUrl && !isEditingEvidence" class="w-full h-48 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
+              <img :src="followUp.evidenceUrl.startsWith('blob:') ? followUp.evidenceUrl : followUp.evidenceUrl" alt="Evidence" class="w-full h-full object-cover" />
             </div>
             
             <div v-else class="space-y-3">
               <EvidenceUploader v-model="newEvidenceFile" />
               <div class="flex justify-end gap-2">
-                <AppButton v-if="followUp.evidence" size="sm" variant="outline" @click="isEditingEvidence = false" :disabled="isSavingEvidence">Cancel</AppButton>
+                <AppButton v-if="followUp.evidenceUrl" size="sm" variant="outline" @click="isEditingEvidence = false" :disabled="isSavingEvidence">Cancel</AppButton>
                 <AppButton size="sm" variant="primary" :disabled="!newEvidenceFile" :loading="isSavingEvidence" @click="saveEvidence">
-                  {{ followUp.evidence ? 'Update Evidence' : 'Upload Evidence' }}
+                  {{ followUp.evidenceUrl ? 'Update Evidence' : 'Upload Evidence' }}
                 </AppButton>
               </div>
             </div>

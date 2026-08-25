@@ -21,27 +21,36 @@ class CustomerFollowUpService {
     if (!data.templateUsed) throw new Error('Template is required')
     if (!data.followUpDate) throw new Error('Follow Up Date is required')
 
-    const payload = {
-      dedicate: data.dedicate,
-      template_used: data.templateUsed,
-      whatsapp_message: data.whatsappMessage,
-      follow_up_date: data.followUpDate,
-      notes: data.notes,
-      conversion: data.conversion
-    }
+    const formData = new FormData()
+    formData.append('dedicate', data.dedicate)
+    formData.append('template_used', data.templateUsed)
+    if (data.whatsappMessage) formData.append('whatsapp_message', data.whatsappMessage)
+    formData.append('follow_up_date', data.followUpDate)
+    if (data.notes) formData.append('notes', data.notes)
+    if (data.conversion) formData.append('conversion', data.conversion)
+    if (data.evidence) formData.append('evidence', data.evidence)
 
-    const { data: responseData } = await http.post(`/customers/${data.customerId}/follow-ups`, payload)
+    const { data: responseData } = await http.post(`/customers/${data.customerId}/follow-ups`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
     
     // Automatically trigger customer fetch refresh if necessary, but backend updates it
     return this.mapToCamelCase(responseData.data)
   }
 
   async updateFollowUp(id: string, data: Partial<CustomerFollowUp>): Promise<CustomerFollowUp> {
-    const payload = {
-      _method: 'PUT',
-      notes: data.notes
-    }
-    const { data: responseData } = await http.post(`/follow-ups/${id}`, payload)
+    const formData = new FormData()
+    formData.append('_method', 'PUT')
+    if (data.notes) formData.append('notes', data.notes)
+    if (data.evidence) formData.append('evidence', data.evidence)
+
+    const { data: responseData } = await http.post(`/follow-ups/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
     return this.mapToCamelCase(responseData.data)
   }
 
