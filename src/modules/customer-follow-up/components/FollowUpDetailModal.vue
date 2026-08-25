@@ -32,7 +32,7 @@ const saveEvidence = async () => {
     
     // Mutate locally for instant feedback
     if (props.followUp) {
-      props.followUp.evidenceUrl = updatedFollowUp.evidenceUrl
+      props.followUp.evidence = updatedFollowUp.evidence
     }
     
     emit('updated')
@@ -101,7 +101,7 @@ const formatDateTime = (isoString?: string) => {
             <div class="flex justify-between items-center mb-3 border-b pb-1">
               <h3 class="text-sm font-semibold text-gray-900">Evidence</h3>
               <button 
-                v-if="followUp.evidenceUrl && !isEditingEvidence" 
+                v-if="followUp.evidence && !isEditingEvidence" 
                 @click="isEditingEvidence = true" 
                 class="text-xs font-medium text-primary-600 hover:text-primary-700"
               >
@@ -109,16 +109,16 @@ const formatDateTime = (isoString?: string) => {
               </button>
             </div>
             
-            <div v-if="followUp.evidenceUrl && !isEditingEvidence" class="w-full h-48 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
-              <img :src="followUp.evidenceUrl.startsWith('blob:') ? followUp.evidenceUrl : followUp.evidenceUrl" alt="Evidence" class="w-full h-full object-cover" />
+            <div v-if="followUp.evidence && !isEditingEvidence" class="w-full h-48 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
+              <img :src="followUp.evidence.startsWith('blob:') ? followUp.evidence : followUp.evidence" alt="Evidence" class="w-full h-full object-cover" />
             </div>
             
             <div v-else class="space-y-3">
               <EvidenceUploader v-model="newEvidenceFile" />
               <div class="flex justify-end gap-2">
-                <AppButton v-if="followUp.evidenceUrl" size="sm" variant="outline" @click="isEditingEvidence = false" :disabled="isSavingEvidence">Cancel</AppButton>
+                <AppButton v-if="followUp.evidence" size="sm" variant="outline" @click="isEditingEvidence = false" :disabled="isSavingEvidence">Cancel</AppButton>
                 <AppButton size="sm" variant="primary" :disabled="!newEvidenceFile" :loading="isSavingEvidence" @click="saveEvidence">
-                  {{ followUp.evidenceUrl ? 'Update Evidence' : 'Upload Evidence' }}
+                  {{ followUp.evidence ? 'Update Evidence' : 'Upload Evidence' }}
                 </AppButton>
               </div>
             </div>
