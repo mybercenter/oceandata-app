@@ -44,7 +44,7 @@ const activeOptions = [
 const formData = ref({
   customer_date: new Date().toISOString().split('T')[0],
   full_name: '',
-  gender: '' as Gender | '',
+  gender: 'Male' as Gender | '',
   phone: '',
   social_media: '',
   product: '',
@@ -177,7 +177,7 @@ const getError = (field: string) => {
           <AppSelect
             label="Jenis Kelamin"
             v-model="formData.gender"
-            :options="[{label: 'Pilih Jenis Kelamin', value: ''}, ...genderOptions]"
+            :options="genderOptions"
             :error="getError('gender')"
           />
           <AppAsyncSelect

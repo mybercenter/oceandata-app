@@ -87,6 +87,15 @@ const handleOpenWhatsapp = async (row: CustomerFollowUp) => {
 const handleRefresh = () => {
   fetchHistory()
 }
+
+// Evidence image modal (from table click)
+const isEvidenceModalOpen = ref(false)
+const evidenceModalUrl = ref<string | null>(null)
+
+const handleViewEvidence = (url: string) => {
+  evidenceModalUrl.value = url
+  isEvidenceModalOpen.value = true
+}
 </script>
 
 <template>
@@ -144,6 +153,7 @@ const handleRefresh = () => {
         @add="handleNew"
         @view="handleView"
         @open-whatsapp="handleOpenWhatsapp"
+        @view-evidence="handleViewEvidence"
       />
     </div>
     
@@ -167,7 +177,45 @@ const handleRefresh = () => {
       :is-open="isDetailOpen"
       :follow-up="selectedFollowUp"
       @close="isDetailOpen = false"
+      @refresh="fetchHistory"
     />
+
+    <!-- Evidence Image Lightbox (from table) -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div 
+          v-if="isEvidenceModalOpen"
+          class="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4"
+          @click.self="isEvidenceModalOpen = false"
+        >
+          <div class="relative max-w-4xl max-h-[90vh] w-full">
+            <button
+              @click="isEvidenceModalOpen = false"
+              class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors text-sm font-medium"
+            >
+              ✕ Close
+            </button>
+            <img 
+              v-if="evidenceModalUrl"
+              :src="evidenceModalUrl" 
+              alt="Evidence Full" 
+              class="w-full h-full object-contain rounded-lg max-h-[85vh]"
+            />
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
   </AppPage>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

@@ -74,7 +74,7 @@ class CustomerFollowUpService {
       templateUsed: item.template_used,
       whatsappMessage: item.whatsapp_message,
       whatsappUrl: item.whatsapp_url,
-      evidenceUrl: item.evidence_url,
+      evidence: item.evidence_url || item.evidence || null,
       createdAt: item.created_at
     } as any
   }

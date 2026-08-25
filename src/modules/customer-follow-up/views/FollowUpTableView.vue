@@ -27,6 +27,7 @@ const emit = defineEmits<{
   (e: 'delete-selected', ids: string[]): void
   (e: 'open-whatsapp', row: any): void
   (e: 'view-customer', row: any): void
+  (e: 'view-evidence', url: string): void
 }>()
 
 const areaOptions = computed(() => [{ label: 'All Areas', value: '' }, ...props.areas.map(a => ({ label: a.name || a.area_name || (a as any).areaName, value: a.id }))])
@@ -119,8 +120,13 @@ const formatDate = (isoString?: string) => {
 
 
     <template #evidence="{ row }">
-      <div v-if="row.evidenceUrl" class="w-8 h-8 rounded border overflow-hidden mx-auto cursor-pointer hover:ring-2 hover:ring-primary-500">
-        <img :src="row.evidenceUrl" class="w-full h-full object-cover" />
+      <div 
+        v-if="row.evidence" 
+        class="w-8 h-8 rounded border overflow-hidden mx-auto cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
+        @click="emit('view-evidence', row.evidence)"
+        title="Click to view evidence"
+      >
+        <img :src="row.evidence" class="w-full h-full object-cover" />
       </div>
       <span v-else class="text-[10px] text-gray-400 italic">No Evidence</span>
     </template>
