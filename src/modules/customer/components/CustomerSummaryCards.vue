@@ -20,6 +20,7 @@ defineProps<{
     hotProspect: number
     today: number
     thisMonth: number
+    followUp: number
   }
 }>()
 </script>
@@ -81,21 +82,24 @@ defineProps<{
     </div>
 
     <!-- Card 7 -->
-    <div class="min-w-[140px] sm:min-w-0 flex-shrink-0 sm:flex-shrink snap-start bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col bg-gray-50/50">
+    <div class="min-w-[140px] sm:min-w-0 flex-shrink-0 sm:flex-shrink snap-start bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col bg-gray-50/50 hover:border-gray-300 transition-colors">
       <div class="flex items-center gap-2 text-gray-500 mb-2">
-        <ClockIcon class="w-4 h-4" />
-        <span class="text-xs font-semibold uppercase tracking-wider">Today</span>
+        <CalendarDaysIcon class="w-4 h-4" />
+        <span class="text-[10px] font-bold uppercase tracking-wider">Today / Month</span>
       </div>
-      <p class="text-2xl font-bold text-gray-900">{{ metrics.today }}</p>
+      <div class="flex items-baseline gap-1">
+        <p class="text-2xl font-bold text-gray-900">{{ metrics.today }}</p>
+        <p class="text-sm font-medium text-gray-500">/ {{ metrics.thisMonth }}</p>
+      </div>
     </div>
 
     <!-- Card 8 -->
-    <div class="min-w-[140px] sm:min-w-0 flex-shrink-0 sm:flex-shrink snap-start bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col bg-gray-50/50">
-      <div class="flex items-center gap-2 text-gray-500 mb-2">
-        <CalendarDaysIcon class="w-4 h-4" />
-        <span class="text-xs font-semibold uppercase tracking-wider">Month</span>
+    <div class="min-w-[140px] sm:min-w-0 flex-shrink-0 sm:flex-shrink snap-start bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col bg-indigo-50/30 hover:border-indigo-300 transition-colors">
+      <div class="flex items-center gap-2 text-indigo-600 mb-2">
+        <ChatBubbleLeftEllipsisIcon class="w-4 h-4" />
+        <span class="text-[10px] font-bold uppercase tracking-wider">Follow Up</span>
       </div>
-      <p class="text-2xl font-bold text-gray-900">{{ metrics.thisMonth }}</p>
+      <p class="text-2xl font-bold text-indigo-900">{{ metrics.followUp }}</p>
     </div>
   </div>
 </template>

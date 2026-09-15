@@ -8,6 +8,7 @@ import type { TablePagination } from '@/shared/components/table/table.types'
 
 export const useCustomerFollowUp = () => {
   const followUps = ref<CustomerFollowUp[]>([])
+  const allFilteredFollowUps = ref<CustomerFollowUp[]>([])
   const templates = ref<MessageTemplate[]>([])
   const isLoading = ref(false)
   const isSubmitting = ref(false)
@@ -21,10 +22,36 @@ export const useCustomerFollowUp = () => {
   
   const toast = useToast()
 
-  const fetchHistory = async (customerId?: string | number) => {
+  const fetchHistory = async (customerId?: string | number, currentFilters?: any) => {
     isLoading.value = true
     try {
-      const all = await customerFollowUpService.getFollowUps(customerId)
+      let all = await customerFollowUpService.getFollowUps(customerId)
+      
+      if (currentFilters) {
+        if (currentFilters.dedicate) {
+          all = all.filter(f => f.dedicate === currentFilters.dedicate)
+        }
+        if (currentFilters.areaId) {
+          all = all.filter(f => (f.customer as any)?.employee?.store?.area_id === currentFilters.areaId || (f.customer as any)?.area_id === currentFilters.areaId)
+        }
+        if (currentFilters.storeId) {
+          all = all.filter(f => (f.customer as any)?.employee?.store_id === currentFilters.storeId || (f.customer as any)?.store_id === currentFilters.storeId)
+        }
+        if (currentFilters.employeeId) {
+          all = all.filter(f => (f.customer as any)?.employee_id === currentFilters.employeeId)
+        }
+        if (currentFilters.search) {
+          const s = currentFilters.search.toLowerCase()
+          all = all.filter(f => {
+            const customerName = (f.customer as any)?.full_name?.toLowerCase() || ''
+            const customerPhone = (f.customer as any)?.phone?.toLowerCase() || ''
+            const employeeName = (f.customer as any)?.employee?.full_name?.toLowerCase() || ''
+            return customerName.includes(s) || customerPhone.includes(s) || employeeName.includes(s)
+          })
+        }
+      }
+
+      allFilteredFollowUps.value = all
       pagination.value.total = all.length
       const start = (pagination.value.page - 1) * pagination.value.limit
       const end = start + pagination.value.limit
@@ -34,6 +61,49 @@ export const useCustomerFollowUp = () => {
     } finally {
       isLoading.value = false
     }
+  }
+
+  const exportData = () => {
+    const dataToExport = allFilteredFollowUps.value
+    if (dataToExport.length === 0) {
+      toast.error('Export Failed', 'No data to export')
+      return
+    }
+
+    const headers = ['Date', 'Customer Name', 'Phone', 'Employee', 'Store', 'Dedicate', 'Template Used', 'Conversion']
+    const csvRows = [headers.join(',')]
+
+    dataToExport.forEach(row => {
+      const date = row.followUpDate ? new Date(row.followUpDate).toLocaleDateString('id-ID') : '-'
+      const customer = (row.customer as any)?.full_name || '-'
+      const phone = (row.customer as any)?.phone || '-'
+      const employee = (row.customer as any)?.employee?.full_name || '-'
+      const store = (row.customer as any)?.employee?.store?.name || '-'
+      const dedicate = row.dedicate || '-'
+      const template = row.templateUsed || '-'
+      const conversion = (row.customer as any)?.current_conversion || '-'
+      
+      const values = [
+        `"${date}"`,
+        `"${customer}"`,
+        `"${phone}"`,
+        `"${employee}"`,
+        `"${store}"`,
+        `"${dedicate}"`,
+        `"${template}"`,
+        `"${conversion}"`
+      ]
+      csvRows.push(values.join(','))
+    })
+
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n')
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement("a")
+    link.setAttribute("href", encodedUri)
+    link.setAttribute("download", `follow_ups_export_${new Date().getTime()}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
   }
 
   const fetchTemplates = async (areaId: string, dedicate: 'AV' | 'HA') => {
@@ -87,6 +157,7 @@ export const useCustomerFollowUp = () => {
     fetchHistory,
     fetchTemplates,
     createFollowUp,
-    openWhatsapp
+    openWhatsapp,
+    exportData
   }
 }

@@ -5,7 +5,7 @@ import AppStatusBadge from '@/shared/components/AppStatusBadge.vue'
 import AppButton from '@/shared/components/AppButton.vue'
 import AppTabs from '@/shared/components/ui/AppTabs.vue'
 import AppDataTable from '@/shared/components/table/AppDataTable.vue'
-import { PencilSquareIcon } from '@heroicons/vue/24/outline'
+import { PencilSquareIcon, PhoneArrowUpRightIcon } from '@heroicons/vue/24/outline'
 
 import type { Customer } from '../types/customer.types'
 import CustomerTimeline from './CustomerTimeline.vue'
@@ -15,11 +15,13 @@ import type { TableColumn } from '@/shared/components/table/table.types'
 const props = defineProps<{
   isOpen: boolean
   customer: Customer | null
+  initialTab?: number
 }>()
 
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'edit', customer: Customer): void
+  (e: 'follow-up', customer: Customer): void
 }>()
 
 const activeTab = ref(0)
@@ -29,7 +31,7 @@ const { followUps, isLoading, fetchHistory, pagination } = useCustomerFollowUp()
 
 watch(() => props.isOpen, (val) => {
   if (val && props.customer) {
-    activeTab.value = 0
+    activeTab.value = props.initialTab !== undefined ? props.initialTab : 0
     fetchHistory(props.customer.id)
   }
 })
@@ -205,10 +207,16 @@ const handleHistoryPagination = () => {
     <template #footer>
       <div class="flex justify-between w-full">
         <AppButton variant="outline" @click="emit('close')">Close</AppButton>
-        <AppButton v-if="customer" variant="primary" @click="emit('edit', customer)">
-          <PencilSquareIcon class="w-4 h-4 mr-2" />
-          Edit Data
-        </AppButton>
+        <div class="flex gap-2">
+          <AppButton v-if="customer" variant="primary" @click="emit('follow-up', customer)">
+            <PhoneArrowUpRightIcon class="w-4 h-4 mr-2" />
+            Follow Up Now
+          </AppButton>
+          <AppButton v-if="customer" variant="secondary" @click="emit('edit', customer)">
+            <PencilSquareIcon class="w-4 h-4 mr-2" />
+            Edit Data
+          </AppButton>
+        </div>
       </div>
     </template>
   </AppModal>

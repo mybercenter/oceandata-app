@@ -19,7 +19,7 @@ import type { Customer } from '../types/customer.types'
 import { useLookupStore } from '@/stores/lookup.store'
 import { storeToRefs } from 'pinia'
 
-import { PhoneArrowUpRightIcon } from '@heroicons/vue/24/outline'
+import { PhoneArrowUpRightIcon, ClockIcon } from '@heroicons/vue/24/outline'
 
 import { useAuth } from '@/shared/composables/useAuth'
 
@@ -84,6 +84,7 @@ const isFormModalOpen = ref(false)
 const isDetailModalOpen = ref(false)
 const isFollowUpModalOpen = ref(false)
 const selectedCustomer = ref<Customer | null>(null)
+const initialModalTab = ref(0)
 
 const handleSort = (key: string, order: 'asc'|'desc') => {
   sort.value = { key, order }
@@ -97,6 +98,7 @@ const handleCreateNew = () => {
 
 const handleView = (customer: Customer) => {
   selectedCustomer.value = customer
+  initialModalTab.value = 0
   isDetailModalOpen.value = true
 }
 
@@ -108,7 +110,14 @@ const handleEdit = (customer: Customer) => {
 
 const handleFollowUp = (customer: Customer) => {
   selectedCustomer.value = customer
+  isDetailModalOpen.value = false
   isFollowUpModalOpen.value = true
+}
+
+const handleViewHistory = (customer: Customer) => {
+  selectedCustomer.value = customer
+  initialModalTab.value = 1
+  isDetailModalOpen.value = true
 }
 
 const handleDelete = async (customer: Customer) => {
@@ -265,6 +274,14 @@ const formatDate = (isoString?: string) => {
       <!-- Custom Actions -->
       <template #actions-prepend="{ row }">
         <button 
+          @click="handleViewHistory(row)"
+          class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          role="menuitem"
+        >
+          <ClockIcon class="mr-3 h-4 w-4 text-blue-500" aria-hidden="true" />
+          History Follow Up
+        </button>
+        <button 
           @click="handleFollowUp(row)"
           class="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           role="menuitem"
@@ -289,8 +306,10 @@ const formatDate = (isoString?: string) => {
     <CustomerDetailModal 
       :is-open="isDetailModalOpen"
       :customer="selectedCustomer"
+      :initial-tab="initialModalTab"
       @close="isDetailModalOpen = false"
       @edit="handleEdit"
+      @follow-up="handleFollowUp"
     />
 
     <!-- Follow Up Workflow Modal -->

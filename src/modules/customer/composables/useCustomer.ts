@@ -27,6 +27,9 @@ export const useCustomer = () => {
   // These statistics are calculated from all customer data, not just the current page
   const metrics = computed(() => {
     const stats = statistics.value
+    // If backend provides follow_up stats we use it, otherwise we calculate from currently fetched customers
+    const followUpTotal = (stats as any).follow_up ?? customers.value.filter(c => c.latest_follow_up || c.follow_up_count).length
+    
     return {
       total: stats.total || pagination.value.total || customers.value.length,
       inquiry: stats.inquiry || 0,
@@ -35,7 +38,8 @@ export const useCustomer = () => {
       prospect: stats.prospect || 0,
       hotProspect: stats.hot_prospect || 0,
       today: stats.today || 0,
-      thisMonth: stats.this_month || 0
+      thisMonth: stats.this_month || 0,
+      followUp: followUpTotal
     }
   })
 

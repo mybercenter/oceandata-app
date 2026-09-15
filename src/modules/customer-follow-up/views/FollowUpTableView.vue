@@ -22,6 +22,7 @@ const emit = defineEmits<{
   (e: 'sort', key: string, order: 'asc'|'desc'): void
   (e: 'refresh'): void
   (e: 'add'): void
+  (e: 'export'): void
   (e: 'view', row: any): void
   (e: 'delete', row: any): void
   (e: 'delete-selected', ids: string[]): void
@@ -79,6 +80,7 @@ const formatDate = (isoString?: string) => {
     @sort="(key, order) => emit('sort', key, order)"
     @refresh="emit('refresh')"
     @add="emit('add')"
+    @export="emit('export')"
     @delete-selected="ids => emit('delete-selected', ids)"
   >
     <template #filters>

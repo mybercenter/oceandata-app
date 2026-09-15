@@ -21,7 +21,8 @@ const {
   pagination,
   isLoading,
   fetchHistory,
-  openWhatsapp
+  openWhatsapp,
+  exportData
 } = useCustomerFollowUp()
 
 const lookupStore = useLookupStore()
@@ -33,17 +34,18 @@ const filters = ref({
   areaId: '',
   storeId: '',
   employeeId: '',
-  dedicate: ''
+  dedicate: '',
+  search: ''
 })
 
 onMounted(async () => {
   await lookupStore.fetchLookups()
-  fetchHistory()
+  fetchHistory(undefined, filters.value)
 })
 
 watch(filters, () => {
   pagination.value.page = 1
-  fetchHistory()
+  fetchHistory(undefined, filters.value)
 }, { deep: true })
 
 // Modals State
@@ -85,7 +87,7 @@ const handleOpenWhatsapp = async (row: CustomerFollowUp) => {
 }
 
 const handleRefresh = () => {
-  fetchHistory()
+  fetchHistory(undefined, filters.value)
 }
 
 // Evidence image modal (from table click)
@@ -148,12 +150,13 @@ const handleViewEvidence = (url: string) => {
         :stores="stores"
         :employees="employees"
         @update:filters="filters = $event"
-        @pagination="(p) => { pagination.page = p.page; pagination.limit = p.limit; fetchHistory(); }"
-        @refresh="fetchHistory"
+        @pagination="(p) => { pagination.page = p.page; pagination.limit = p.limit; fetchHistory(undefined, filters); }"
+        @refresh="() => fetchHistory(undefined, filters)"
         @add="handleNew"
         @view="handleView"
         @open-whatsapp="handleOpenWhatsapp"
         @view-evidence="handleViewEvidence"
+        @export="exportData"
       />
     </div>
     
@@ -170,14 +173,14 @@ const handleViewEvidence = (url: string) => {
       :is-open="isWorkflowOpen"
       :customer="null"
       @close="isWorkflowOpen = false"
-      @success="() => fetchHistory()"
+      @success="() => fetchHistory(undefined, filters)"
     />
 
     <FollowUpDetailModal 
       :is-open="isDetailOpen"
       :follow-up="selectedFollowUp"
       @close="isDetailOpen = false"
-      @refresh="fetchHistory"
+      @refresh="() => fetchHistory(undefined, filters)"
     />
 
     <!-- Evidence Image Lightbox (from table) -->
