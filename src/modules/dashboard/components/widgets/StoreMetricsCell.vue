@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StorePerformanceMetric } from '../../../services/dashboard.service'
+import type { StorePerformanceMetric } from '../../services/dashboard.service'
 
 defineProps<{
   metrics: StorePerformanceMetric

@@ -232,7 +232,6 @@ export const useDashboard = () => {
         conversionData,
         followUpData,
         areaData,
-        storeData,
         promotorData,
         trendData,
         recentFollowUpsData
@@ -247,7 +246,7 @@ export const useDashboard = () => {
         dashboardService.getRecentFollowUps(filters)
       ])
 
-      // Fetch store performance separately but concurrently
+      // Fetch store performance separately (uses currentFilters set above)
       await fetchStorePerformance(1)
 
       summary.value = summaryData
