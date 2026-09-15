@@ -52,12 +52,25 @@ export interface AreaPerformance {
   total_follow_ups: number
 }
 
+export interface StorePerformanceMetric {
+  customers: number
+  purchased: number
+  inquiry: number
+  follow_ups: number
+  potential: number
+  prospect: number
+  hot_prospect: number
+}
+
 export interface StorePerformance {
   store_id: number
   store_name: string
-  total_customers: number
-  purchased: number
-  inquiry: number
+  metrics: {
+    AV: StorePerformanceMetric
+    HA: StorePerformanceMetric
+    Hybrid: StorePerformanceMetric
+    Total: StorePerformanceMetric
+  }
 }
 
 export interface PromotorPerformance {
@@ -82,6 +95,16 @@ export interface RecentFollowUp {
   customerName: string
   templateUsed: string
   conversionStatus: string
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  meta: {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+  }
 }
 
 class DashboardService {
@@ -110,9 +133,40 @@ class DashboardService {
     return response.data.data
   }
 
-  async getStorePerformance(filters: Record<string, any> = {}): Promise<StorePerformance[]> {
+  async getStorePerformance(filters: Record<string, any> = {}): Promise<PaginatedResponse<StorePerformance>> {
     const response = await http.get('/dashboard/store-performance', { params: filters })
+    // The backend now returns { data, meta } directly inside response.data.data
     return response.data.data
+  }
+
+  async exportStorePerformance(filters: Record<string, any> = {}): Promise<void> {
+    const response = await http.get('/dashboard/store-performance/export', { 
+      params: filters,
+      responseType: 'blob' 
+    })
+    
+    // Create a temporary link to download the blob
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    
+    // Extract filename from content-disposition header if available, otherwise fallback
+    const contentDisposition = response.headers['content-disposition']
+    let fileName = 'store_statistics.csv'
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename="?([^"]+)"?/)
+      if (fileNameMatch && fileNameMatch.length === 2) {
+        fileName = fileNameMatch[1]
+      }
+    }
+    
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    
+    // Cleanup
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
   }
 
   async getPromotorPerformance(filters: Record<string, any> = {}): Promise<PromotorPerformance[]> {

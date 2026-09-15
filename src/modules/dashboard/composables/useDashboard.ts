@@ -24,6 +24,12 @@ export const useDashboard = () => {
   const followUp = ref<FollowUpAnalytics | null>(null)
   const areaPerformance = ref<AreaPerformance[]>([])
   const storePerformance = ref<StorePerformance[]>([])
+  const storePerformanceMeta = ref({
+    current_page: 1,
+    last_page: 1,
+    per_page: 10,
+    total: 0
+  })
   const promotorPerformance = ref<PromotorPerformance[]>([])
   const monthlyTrend = ref<MonthlyTrend[]>([])
   const recentFollowUps = ref<RecentFollowUp[]>([])
@@ -212,9 +218,12 @@ export const useDashboard = () => {
     topPromotors.value = updatedTopPromotors
   }
 
+  const currentFilters = ref<Record<string, any>>({})
+
   const fetchAllData = async (filters: Record<string, any> = {}) => {
     isLoading.value = true
     error.value = null
+    currentFilters.value = { ...filters }
 
     try {
       const [
@@ -233,18 +242,19 @@ export const useDashboard = () => {
         dashboardService.getConversion(filters),
         dashboardService.getFollowUp(filters),
         dashboardService.getAreaPerformance(filters),
-        dashboardService.getStorePerformance(filters),
         dashboardService.getPromotorPerformance(filters),
         dashboardService.getMonthlyTrend(filters),
         dashboardService.getRecentFollowUps(filters)
       ])
+
+      // Fetch store performance separately but concurrently
+      await fetchStorePerformance(1)
 
       summary.value = summaryData
       customerStatus.value = customerStatusData
       conversion.value = conversionData
       followUp.value = followUpData
       areaPerformance.value = areaData
-      storePerformance.value = storeData
       promotorPerformance.value = promotorData
       monthlyTrend.value = trendData
       recentFollowUps.value = recentFollowUpsData
@@ -253,8 +263,7 @@ export const useDashboard = () => {
         summary: summaryData,
         customerStatus: customerStatusData,
         conversion: conversionData,
-        areaCount: areaData?.length,
-        storeCount: storeData?.length
+        areaCount: areaData?.length
       })
 
       // Update KPI refs with the new data
@@ -264,6 +273,34 @@ export const useDashboard = () => {
       console.error('Dashboard fetch error:', err)
     } finally {
       isLoading.value = false
+    }
+  }
+
+  const isStoreLoading = ref(false)
+  const isExportingStores = ref(false)
+
+  const fetchStorePerformance = async (page = 1) => {
+    isStoreLoading.value = true
+    try {
+      const response = await dashboardService.getStorePerformance({ ...currentFilters.value, page })
+      storePerformance.value = response.data
+      storePerformanceMeta.value = response.meta
+    } catch (err: any) {
+      console.error('Store performance fetch error:', err)
+    } finally {
+      isStoreLoading.value = false
+    }
+  }
+
+  const exportStores = async () => {
+    isExportingStores.value = true
+    try {
+      await dashboardService.exportStorePerformance(currentFilters.value)
+    } catch (err: any) {
+      console.error('Failed to export store performance:', err)
+      // You could also add a toast notification here
+    } finally {
+      isExportingStores.value = false
     }
   }
 
@@ -327,7 +364,6 @@ export const useDashboard = () => {
     promotorKpis,
     chartData,
     topPromotors,
-    recentCustomers: [] as any[], // Backend doesn't provide this yet
     recentFollowUps,
     activityTimeline: [] as any[], // Backend doesn't provide this yet
     summary,
@@ -336,6 +372,11 @@ export const useDashboard = () => {
     followUp,
     areaPerformance,
     storePerformance,
+    storePerformanceMeta,
+    isStoreLoading,
+    fetchStorePerformance,
+    isExportingStores,
+    exportStores,
     promotorPerformance,
     monthlyTrend
   }
